@@ -182,7 +182,7 @@ public class Model extends Observable {
         for(int row = 0; row < size; row++) {
             for(int col = 0; col < size; col++) {
                 Tile tile = b.tile(col, row);
-                if(hasAdjacentValue(tile, b)) {
+                if(compareAllNeighborValues(tile, b)) {
                     return true;
                 }
             }
@@ -190,48 +190,29 @@ public class Model extends Observable {
         return false;
     }
 
+
     /**
-     * Returns true if the tile t has any adjacent neighbor with the same value.
+     * Returns true if any adjacent tile of Tile t on Board b has the same value
      */
-    public static boolean hasAdjacentValue(Tile t, Board b) {
-        boolean leftIsEqual = sameValueNeighbor(t, "left", b);
-        boolean rightIsEqual = sameValueNeighbor(t, "right", b);
-        boolean topIsEqual = sameValueNeighbor(t, "up", b);
-        boolean botIsEqual = sameValueNeighbor(t, "down", b);
-        if(leftIsEqual || rightIsEqual || topIsEqual || botIsEqual) {
-            return true;
-        } else {
-            return false;
-        }
+    public static boolean compareAllNeighborValues(Tile t, Board b) {
+        boolean leftEqual, rightEqual, upEqual, downEqual;
+
+        leftEqual = isSameValue(t, t.row(), t.col()-1, b);
+        rightEqual = isSameValue(t, t.row(), t.col()+1, b);
+        upEqual = isSameValue(t, t.row()+1, t.col(), b);
+        downEqual = isSameValue(t, t.row()-1, t.col(), b);
+
+        return leftEqual || rightEqual || upEqual || downEqual;
     }
 
     /**
-     * Returns true if the tile has a neighboring tile with the same value on board b indicated by direction
+     * Returns true if the adjacent tile at row, col has the same value as Tile t on Board b
      */
-    public static boolean sameValueNeighbor(Tile tile, String direction, Board b) {
-        int size = b.size();
-        int row, col;
-
-        if (direction == "left") {
-            row = tile.row();
-            col = tile.col() - 1;
-        } else if (direction == "right") {
-            row = tile.row();
-            col = tile.col() + 1;
-        } else if (direction == "up") {
-            row = tile.row() + 1;
-            col = tile.col();
-        } else {
-            row = tile.row() - 1;
-            col = tile.col();
-        }
-
+    public static boolean isSameValue(Tile t, int row, int col, Board b) {
         if (!validIndex(row, col, b)) {
             return false;
         }
-
-        Tile adjacent = b.tile(col, row);
-        return tile.value() == adjacent.value();
+        return t.value() == b.tile(col, row).value();
     }
 
     /**
