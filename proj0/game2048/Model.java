@@ -174,6 +174,78 @@ public class Model extends Observable {
     }
 
     /**
+     * Returns true if any tile has an adjacent tile with the same value
+     */
+    public static boolean adjacentTilesExist(Board b) {
+        int size = b.size();
+
+        for(int row = 0; row < size; row++) {
+            for(int col = 0; col < size; col++) {
+                Tile tile = b.tile(col, row);
+                if(hasAdjacentValue(tile, b)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns true if the tile t has any adjacent neighbor with the same value.
+     */
+    public static boolean hasAdjacentValue(Tile t, Board b) {
+        boolean leftIsEqual = sameValueNeighbor(t, "left", b);
+        boolean rightIsEqual = sameValueNeighbor(t, "right", b);
+        boolean topIsEqual = sameValueNeighbor(t, "up", b);
+        boolean botIsEqual = sameValueNeighbor(t, "down", b);
+        if(leftIsEqual || rightIsEqual || topIsEqual || botIsEqual) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Returns true if the tile has a neighboring tile with the same value on board b indicated by direction
+     */
+    public static boolean sameValueNeighbor(Tile tile, String direction, Board b) {
+        int size = b.size();
+        int row, col;
+
+        if (direction == "left") {
+            row = tile.row();
+            col = tile.col() - 1;
+        } else if (direction == "right") {
+            row = tile.row();
+            col = tile.col() + 1;
+        } else if (direction == "up") {
+            row = tile.row() + 1;
+            col = tile.col();
+        } else {
+            row = tile.row() - 1;
+            col = tile.col();
+        }
+
+        if (!validIndex(row, col, b)) {
+            return false;
+        }
+
+        Tile adjacent = b.tile(col, row);
+        return tile.value() == adjacent.value();
+    }
+
+    /**
+     * Returns true if the row and col are valid indices on Board b
+     */
+    public static boolean validIndex(int row, int col, Board b) {
+        if (row < 0 || row >= b.size() || col < 0 || col >= b.size()) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
      * Returns true if there are any valid moves on the board.
      * There are two ways that there can be valid moves:
      * 1. There is at least one empty space on the board.
@@ -181,7 +253,11 @@ public class Model extends Observable {
      */
     public static boolean atLeastOneMoveExists(Board b) {
         // TODO: Fill in this function.
-        return false;
+        if (emptySpaceExists(b) || adjacentTilesExist(b)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
 
