@@ -113,12 +113,60 @@ public class Model extends Observable {
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+        board.setViewingPerspective(side);
+
+        for (int col = 0; col < board.size(); col++) {
+            for (int row = board.size() - 1; row >= 0; row--) {
+                Tile current = board.tile(col, row);
+                Tile firstTile = getTileBelow(row, col, board);
+
+                //there are no more tiles in the row
+                if (firstTile == null) {
+                    break;
+                //the current tile is empty
+                } else if (current == null) {
+                    Tile secondTile = getTileBelow(firstTile.row(), firstTile.col(), board);
+                    //if the next tile, and it's following tile have the same value, move them both to the position to merge
+                    if (secondTile != null && firstTile.value() == secondTile.value()) {
+                        board.move(col, row, firstTile);
+                        board.move(col, row, secondTile);
+                        score += 2 * firstTile.value();
+                        changed = true;
+                    } else {
+                        board.move(col, row, firstTile);
+                        changed = true;
+                    }
+                //the current tile and the next tile have the same value, so merge them
+                } else if (current.value() == firstTile.value()) {
+                    board.move(col, row, firstTile);
+                    score += 2 * firstTile.value();
+                    changed = true;
+                }
+            }
+        }
+
+        board.setViewingPerspective(Side.NORTH);
 
         checkGameOver();
         if (changed) {
             setChanged();
         }
         return changed;
+    }
+
+    /** Returns the closest tile below tile t in the same column if one exists. Otherwise, returns null */
+    public Tile getTileBelow(int row, int col, Board b) {
+        int row_below = row - 1;
+
+        Tile next;
+        while (row_below >= 0) {
+            next = b.tile(col, row_below);
+            if (next != null) {
+                return next;
+            }
+            row_below--;
+        }
+        return null;
     }
 
     /** Checks if the game is over and sets the gameOver variable
