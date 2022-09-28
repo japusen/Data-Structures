@@ -116,34 +116,36 @@ public class Model extends Observable {
         board.setViewingPerspective(side);
 
         for (int col = 0; col < board.size(); col++) {
-            for (int row = board.size() - 1; row >= 0; row--) {
-                Tile current = board.tile(col, row);
-                Tile firstTile = getTileBelow(row, col, board);
+            int row = board.size()-1;
 
-                //there are no more tiles in the row
-                if (firstTile == null) {
+            while (row >= 0) {
+                Tile current = board.tile(col, row);
+                Tile next = getNextTile(col, row-1);
+
+                //move on to next col if there are no more tiles left
+                if (next == null) {
                     break;
-                //the current tile is empty
-                } else if (current == null) {
-                    Tile secondTile = getTileBelow(firstTile.row(), firstTile.col(), board);
-                    //if the next tile, and it's following tile have the same value, move them both to the position to merge
-                    if (secondTile != null && firstTile.value() == secondTile.value()) {
-                        board.move(col, row, firstTile);
-                        board.move(col, row, secondTile);
-                        score += 2 * firstTile.value();
-                        changed = true;
-                    } else {
-                        board.move(col, row, firstTile);
-                        changed = true;
-                    }
-                //the current tile and the next tile have the same value, so merge them
-                } else if (current.value() == firstTile.value()) {
-                    board.move(col, row, firstTile);
-                    score += 2 * firstTile.value();
+                }
+
+                //if the current tile is empty, move the next available tile to it
+                if (current == null) {
+                    board.move(col, row, next);
                     changed = true;
+                }
+                //the current tile is not empty
+                else {
+                    //if they have the same value, merge
+                    if (current.value() == next.value()) {
+                        board.move(col, row, next);
+                        changed = true;
+                        score += 2 * current.value();
+                    }
+                    //move to next row because of merge or incompatible tiles
+                    row--;
                 }
             }
         }
+
 
         board.setViewingPerspective(Side.NORTH);
 
@@ -154,20 +156,23 @@ public class Model extends Observable {
         return changed;
     }
 
-    /** Returns the closest tile below tile t in the same column if one exists. Otherwise, returns null */
-    public Tile getTileBelow(int row, int col, Board b) {
-        int row_below = row - 1;
-
+    /**
+     * Returns the next tile in the column if it exists o.w. returns null
+     */
+    public Tile getNextTile(int col, int row) {
         Tile next;
-        while (row_below >= 0) {
-            next = b.tile(col, row_below);
+        int starting_row = row;
+        while (starting_row >= 0) {
+            next = board.tile(col, starting_row);
             if (next != null) {
                 return next;
             }
-            row_below--;
+            starting_row--;
         }
         return null;
     }
+
+    public boolean isEmpty()
 
     /** Checks if the game is over and sets the gameOver variable
      *  appropriately.
@@ -230,7 +235,10 @@ public class Model extends Observable {
         for(int row = 0; row < size; row++) {
             for(int col = 0; col < size; col++) {
                 Tile tile = b.tile(col, row);
-                if(compareAllNeighborValues(tile, b)) {
+                if (tile == null) {
+                    continue;
+                }
+                else if(compareAllNeighborValues(row, col, b)) {
                     return true;
                 }
             }
@@ -242,13 +250,14 @@ public class Model extends Observable {
     /**
      * Returns true if any adjacent tile of Tile t on Board b has the same value
      */
-    public static boolean compareAllNeighborValues(Tile t, Board b) {
+    public static boolean compareAllNeighborValues(int row, int col, Board b) {
         boolean leftEqual, rightEqual, upEqual, downEqual;
+        int val = b.tile(col, row).value();
 
-        leftEqual = isSameValue(t, t.row(), t.col()-1, b);
-        rightEqual = isSameValue(t, t.row(), t.col()+1, b);
-        upEqual = isSameValue(t, t.row()+1, t.col(), b);
-        downEqual = isSameValue(t, t.row()-1, t.col(), b);
+        leftEqual = isSameValue(val, row, col-1, b);
+        rightEqual = isSameValue(val, row, col+1, b);
+        upEqual = isSameValue(val, row+1, col, b);
+        downEqual = isSameValue(val, row-1, col, b);
 
         return leftEqual || rightEqual || upEqual || downEqual;
     }
@@ -256,11 +265,11 @@ public class Model extends Observable {
     /**
      * Returns true if the adjacent tile at row, col has the same value as Tile t on Board b
      */
-    public static boolean isSameValue(Tile t, int row, int col, Board b) {
+    public static boolean isSameValue(int val, int row, int col, Board b) {
         if (!validIndex(row, col, b)) {
             return false;
         }
-        return t.value() == b.tile(col, row).value();
+        return val == b.tile(col, row).value();
     }
 
     /**
