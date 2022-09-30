@@ -134,7 +134,7 @@ public class Model extends Observable {
                 }
                 //the current tile is not empty
                 else {
-                    //if they have the same value, merge
+                    //if they have the same value, merge the two tiles
                     if (current.value() == next.value()) {
                         board.move(col, row, next);
                         changed = true;
@@ -172,7 +172,6 @@ public class Model extends Observable {
         return null;
     }
 
-    public boolean isEmpty()
 
     /** Checks if the game is over and sets the gameOver variable
      *  appropriately.
