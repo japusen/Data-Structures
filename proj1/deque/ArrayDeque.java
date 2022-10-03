@@ -63,7 +63,11 @@ public class ArrayDeque<T> {
 
     /** Removes and returns the item at the front of the deque. If no such item exists, returns null. */
     public T removeFirst() {
-        if ((size < array.length / 4) && (size > 16)) {
+        if (size == 0) {
+            return null;
+        }
+
+        if ((size < array.length / 4) && (size >= 16)) {
             resize(array.length / 4);
         }
 
@@ -74,7 +78,11 @@ public class ArrayDeque<T> {
 
     /** Removes and returns the item at the back of the deque. If no such item exists, returns null. */
     public T removeLast() {
-        if ((size < array.length / 4) && (size > 16)) {
+        if (size == 0) {
+            return null;
+        }
+
+        if ((size < array.length / 4) && (size >= 16)) {
             resize(array.length / 4);
         }
 
@@ -108,7 +116,7 @@ public class ArrayDeque<T> {
         return false;
     }
 
-    public void incrementLastIndex() {
+    private void incrementLastIndex() {
         if (nextLast == array.length - 1) {
             nextLast = 0;
         } else {
@@ -116,7 +124,7 @@ public class ArrayDeque<T> {
         }
     }
 
-    public void decrementLastIndex() {
+    private void decrementLastIndex() {
         if (nextLast == 0) {
             nextLast = array.length - 1;
         } else {
@@ -124,7 +132,7 @@ public class ArrayDeque<T> {
         }
     }
 
-    public void incrementFirstIndex() {
+    private void incrementFirstIndex() {
         if (nextFirst == array.length - 1) {
             nextFirst = 0;
         } else {
@@ -132,7 +140,7 @@ public class ArrayDeque<T> {
         }
     }
 
-    public void decrementFirstIndex() {
+    private void decrementFirstIndex() {
         if (nextFirst == 0) {
             nextFirst = array.length - 1;
         } else {
@@ -140,7 +148,7 @@ public class ArrayDeque<T> {
         }
     }
 
-    public int adjustedIndex(int index) {
+    private int adjustedIndex(int index) {
         int start = nextFirst + 1;
         return (start + index) % array.length;
     }
