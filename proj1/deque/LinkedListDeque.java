@@ -118,7 +118,7 @@ public class LinkedListDeque<T> {
     /** The Deque objects we’ll make are iterable (i.e. Iterable<T>)
      * so we must provide this method to return an iterator. */
     public Iterator<T> iterator() {
-
+        // TODO
         return null;
     }
 
@@ -126,7 +126,7 @@ public class LinkedListDeque<T> {
      * o is considered equal if it is a Deque and if it contains the same contents
      * (as goverened by the generic T’s equals method) in the same order. (ADDED 2/12: You’ll need to use the instance of keywords for this. */
     public boolean equals(Object o) {
-
+        // TODO
         return false;
     }
 }

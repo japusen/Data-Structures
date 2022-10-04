@@ -24,8 +24,8 @@ public class ArrayDeque<T> {
         decrementFirstIndex();
         size++;
 
-        //resize if necessary
-        if (nextLast > nextFirst) {
+        //rethink condition
+        if (size == array.length) {
             resize(array.length * 2);
         }
     }
@@ -36,8 +36,8 @@ public class ArrayDeque<T> {
         incrementLastIndex();
         size++;
 
-        //resize if necessary
-        if (nextLast > nextFirst) {
+        //rethink condition
+        if (size == array.length) {
             resize(array.length * 2);
         }
     }
@@ -63,12 +63,12 @@ public class ArrayDeque<T> {
 
     /** Removes and returns the item at the front of the deque. If no such item exists, returns null. */
     public T removeFirst() {
-        if (size == 0) {
+        if (isEmpty()) {
             return null;
         }
 
         if ((size < array.length / 4) && (size >= 16)) {
-            resize(array.length / 4);
+            resize(array.length / 2);
         }
 
         size--;
@@ -78,12 +78,12 @@ public class ArrayDeque<T> {
 
     /** Removes and returns the item at the back of the deque. If no such item exists, returns null. */
     public T removeLast() {
-        if (size == 0) {
+        if (isEmpty()) {
             return null;
         }
 
         if ((size < array.length / 4) && (size >= 16)) {
-            resize(array.length / 4);
+            resize(array.length / 2);
         }
 
         size--;
@@ -104,7 +104,7 @@ public class ArrayDeque<T> {
     /** The Deque objects we’ll make are iterable (i.e. Iterable<T>)
      * so we must provide this method to return an iterator. */
     public Iterator<T> iterator() {
-
+        // TODO:
         return null;
     }
 
@@ -112,10 +112,11 @@ public class ArrayDeque<T> {
      * o is considered equal if it is a Deque and if it contains the same contents
      * (as goverened by the generic T’s equals method) in the same order. (ADDED 2/12: You’ll need to use the instance of keywords for this. */
     public boolean equals(Object o) {
-
+        // TODO:
         return false;
     }
 
+    /** Increments the index of nextLast and accounts for looping to the other side of the array*/
     private void incrementLastIndex() {
         if (nextLast == array.length - 1) {
             nextLast = 0;
@@ -124,6 +125,7 @@ public class ArrayDeque<T> {
         }
     }
 
+    /** Decrements the index of nextLast and accounts for looping to the other side of the array*/
     private void decrementLastIndex() {
         if (nextLast == 0) {
             nextLast = array.length - 1;
@@ -132,6 +134,7 @@ public class ArrayDeque<T> {
         }
     }
 
+    /** Increments the index of nextFirst and accounts for looping to the other side of the array*/
     private void incrementFirstIndex() {
         if (nextFirst == array.length - 1) {
             nextFirst = 0;
@@ -140,6 +143,7 @@ public class ArrayDeque<T> {
         }
     }
 
+    /** Decrements the index of nextFirst and accounts for looping to the other side of the array*/
     private void decrementFirstIndex() {
         if (nextFirst == 0) {
             nextFirst = array.length - 1;
@@ -148,18 +152,20 @@ public class ArrayDeque<T> {
         }
     }
 
-    private int adjustedIndex(int index) {
+    /** Returns the index that represents the nth index in the circular array*/
+    private int adjustedIndex(int n) {
         int start = nextFirst + 1;
-        return (start + index) % array.length;
+        return (start + n) % array.length;
     }
 
+    /** Resizes the array to capacity and adjusts the nextFirst and nextLast*/
     private void resize(int capacity) {
         T[] a = (T[]) new Object[capacity];
         for (int i = 0; i < size; i += 1) {
             a[i] = array[adjustedIndex(i)];
         }
         nextLast = size;
-        nextFirst = array.length - 1;
+        nextFirst = a.length - 1;
         array = a;
     }
 }
