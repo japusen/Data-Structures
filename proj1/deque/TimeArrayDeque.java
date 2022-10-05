@@ -3,17 +3,17 @@ package deque;
 import edu.princeton.cs.algs4.Stopwatch;
 
 public class TimeArrayDeque {
-    private static void printTimingTable(ArrayDeque<Integer> Ns,
+    private static void printTimingTable(ArrayDeque<Integer> n,
                                          ArrayDeque<Double> times,
                                          ArrayDeque<Integer> opCounts) {
         System.out.printf("%12s %12s %12s %12s\n", "N", "time (s)", "# ops", "microsec/op");
         System.out.printf("------------------------------------------------------------\n");
-        for (int i = 0; i < Ns.size(); i += 1) {
-            int N = Ns.get(i);
+        for (int i = 0; i < n.size(); i += 1) {
+            int number = n.get(i);
             double time = times.get(i);
             int opCount = opCounts.get(i);
             double timePerOp = time / opCount * 1e6;
-            System.out.printf("%12d %12.2f %12d %12.2f\n", N, time, opCount, timePerOp);
+            System.out.printf("%12d %12.2f %12d %12.2f\n", number, time, opCount, timePerOp);
         }
     }
 

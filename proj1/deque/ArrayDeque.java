@@ -143,7 +143,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             return false;
         }
 
-        ArrayDeque<T> comp = (ArrayDeque<T>) o;
+        Deque<T> comp = (Deque<T>) o;
 
         if (this == comp) {
             return true;
