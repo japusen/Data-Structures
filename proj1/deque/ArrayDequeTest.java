@@ -124,4 +124,31 @@ public class ArrayDequeTest {
             assertEquals("Should have the same value", i, (double) lld1.removeLast(), 0.0);
         }
     }
+
+    @Test public void equalsEmpty() {
+        ArrayDeque<Integer> lld1 = new ArrayDeque<Integer>();
+        for (int i = 0; i < 10; i++) {
+            lld1.addLast(i);
+        }
+        ArrayDeque<Integer> lld2 = lld1;
+        ArrayDeque<Integer> lld3 = new ArrayDeque<Integer>();
+        for (int i = 0; i < 5; i++) {
+            lld3.addLast(i);
+        }
+        ArrayDeque<Integer> lld4 = new ArrayDeque<Integer>();
+        for (int i = 1; i < 11; i++) {
+            lld4.addLast(i);
+        }
+        ArrayDeque<Integer> lld5 = new ArrayDeque<Integer>();
+        for (int i = 0; i < 10; i++) {
+            lld5.addLast(i);
+        }
+
+        assertEquals("equals: null", false, lld1.equals(null));
+        assertEquals("equals: different type", false, lld1.equals(5));
+        assertEquals("equals: different sizes", false, lld1.equals(lld3));
+        assertEquals("equals: same size, different values", false, lld1.equals(lld4));
+        assertEquals("equals: same pointer", true, lld1.equals(lld2));
+        assertEquals("equals: same", true, lld1.equals(lld5));
+    }
 }

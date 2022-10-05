@@ -124,4 +124,32 @@ public class LinkedListDequeTest {
             assertEquals("Should have the same value", i, (double) lld1.removeLast(), 0.0);
         }
     }
+
+
+    @Test public void equalsEmpty() {
+        LinkedListDeque<Integer> lld1 = new LinkedListDeque<Integer>();
+        for (int i = 0; i < 10; i++) {
+            lld1.addLast(i);
+        }
+        LinkedListDeque<Integer> lld2 = lld1;
+        LinkedListDeque<Integer> lld3 = new LinkedListDeque<Integer>();
+        for (int i = 0; i < 5; i++) {
+            lld3.addLast(i);
+        }
+        LinkedListDeque<Integer> lld4 = new LinkedListDeque<Integer>();
+        for (int i = 1; i < 11; i++) {
+            lld4.addLast(i);
+        }
+        LinkedListDeque<Integer> lld5 = new LinkedListDeque<Integer>();
+        for (int i = 0; i < 10; i++) {
+            lld5.addLast(i);
+        }
+
+        assertEquals("equals: null", false, lld1.equals(null));
+        assertEquals("equals: different type", false, lld1.equals(5));
+        assertEquals("equals: different sizes", false, lld1.equals(lld3));
+        assertEquals("equals: same size, different values", false, lld1.equals(lld4));
+        assertEquals("equals: same pointer", true, lld1.equals(lld2));
+        assertEquals("equals: same", true, lld1.equals(lld5));
+    }
 }
