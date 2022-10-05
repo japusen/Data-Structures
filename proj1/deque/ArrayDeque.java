@@ -139,11 +139,16 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
      * (ADDED 2/12: You’ll need to use the instance of keywords for this.) */
     @Override
     public boolean equals(Object o) {
-        if (o == null || !(o instanceof Deque)) {
+        if (!(o instanceof Deque)) {
             return false;
         }
 
-        Deque<T> comp = (Deque<T>) o;
+        Deque<T> comp;
+        if (o instanceof ArrayDeque) {
+            comp = (ArrayDeque<T>) o;
+        } else {
+            comp = (LinkedListDeque<T>) o;
+        }
 
         if (this == comp) {
             return true;
