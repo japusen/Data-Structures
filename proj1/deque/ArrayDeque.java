@@ -66,13 +66,15 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             return null;
         }
 
-        if ((size - 1 < array.length / 4) && (size - 1 >= 16)) {
+        size--;
+        incrementFirstIndex();
+        T item = array[nextFirst];
+
+        if ((size < array.length / 3)) {
             resize(array.length / 2);
         }
 
-        size--;
-        incrementFirstIndex();
-        return array[nextFirst];
+        return item;
     }
 
     /** Removes and returns the item at the back of the deque.
@@ -83,13 +85,15 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             return null;
         }
 
-        if ((size - 1 < array.length / 4) && (size - 1 >= 16)) {
+        size--;
+        decrementLastIndex();
+        T item = array[nextLast];
+
+        if ((size < array.length / 3)) {
             resize(array.length / 2);
         }
 
-        size--;
-        decrementLastIndex();
-        return array[nextLast];
+        return item;
 
 
     }

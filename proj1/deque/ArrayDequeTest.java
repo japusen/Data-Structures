@@ -129,6 +129,23 @@ public class ArrayDequeTest {
     }
 
     @Test
+    public void memoryUsageTest() {
+        /** Total memory usage after inserting N items and then
+         deleting all but one item, where N is a power of 2. */
+        ArrayDeque<Integer> a = new ArrayDeque<Integer>();
+
+        for (int i = 0; i < 64; i++) {
+            a.addFirst(i);
+        }
+
+        for (int i = 0; i < 63; i++) {
+            a.removeFirst();
+        }
+
+        assertEquals(1, a.size());
+    }
+
+    @Test
     public void equalsNull() {
         ArrayDeque<Integer> l = new ArrayDeque<Integer>();
         for (int i = 0; i < 10; i++) {

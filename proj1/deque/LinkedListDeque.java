@@ -3,15 +3,15 @@ package deque;
 import java.util.Iterator;
 
 public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
-    private IntNode sentinel;
+    private Node sentinel;
     private int size;
 
-    private class IntNode {
-        IntNode prev;
+    private class Node {
+        Node prev;
         T item;
-        IntNode next;
+        Node next;
 
-        IntNode(T elem) {
+        Node(T elem) {
             item = elem;
         }
     }
@@ -20,7 +20,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     /** Constructor to make an empty list */
     public LinkedListDeque() {
         size = 0;
-        sentinel = new IntNode(null);
+        sentinel = new Node(null);
         sentinel.prev = sentinel;
         sentinel.next = sentinel;
     }
@@ -28,8 +28,8 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     /** Adds an item of type T to the front of the deque. You can assume that item is never null. */
     @Override
     public void addFirst(T item) {
-        IntNode first = sentinel.next;
-        IntNode newNode = new IntNode(item);
+        Node first = sentinel.next;
+        Node newNode = new Node(item);
         newNode.prev = sentinel;
         newNode.next = first;
         first.prev = newNode;
@@ -40,8 +40,8 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
     /** Adds an item of type T to the back of the deque. You can assume that item is never null. */
     @Override
     public void addLast(T item) {
-        IntNode last = sentinel.prev;
-        IntNode newNode = new IntNode(item);
+        Node last = sentinel.prev;
+        Node newNode = new Node(item);
         last.next = newNode;
         newNode.prev = last;
         newNode.next = sentinel;
@@ -59,7 +59,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
      *  Once all the items have been printed, print out a new line. */
     @Override
     public void printDeque() {
-        IntNode pointer = sentinel.next;
+        Node pointer = sentinel.next;
 
         while (pointer != sentinel) {
             System.out.print(pointer.item + " ");
@@ -77,7 +77,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
             return null;
         }
 
-        IntNode first = sentinel.next;
+        Node first = sentinel.next;
         sentinel.next = first.next;
         first.next.prev = sentinel;
         size--;
@@ -93,7 +93,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
             return null;
         }
 
-        IntNode last = sentinel.prev;
+        Node last = sentinel.prev;
         last.prev.next = sentinel;
         sentinel.prev = last.prev;
         size--;
@@ -105,7 +105,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
      * If no such item exists, returns null. Must not alter the deque! */
     @Override
     public T get(int index) {
-        IntNode pointer = sentinel.next;
+        Node pointer = sentinel.next;
         int i = 0;
 
         while (pointer != sentinel) {
@@ -132,6 +132,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         LLDequeIterator() {
             pos = 0;
         }
+
         @Override
         public boolean hasNext() {
             return pos < size;

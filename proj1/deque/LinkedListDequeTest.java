@@ -224,4 +224,50 @@ public class LinkedListDequeTest {
 
         assertFalse("equals: LLDeque != ADeque", l.equals(a));
     }
+
+    @Test
+    public void abstractList() {
+        class Student {
+            private int id;
+            private String name;
+
+            public Student(int i, String n) {
+                id = i;
+                name = n;
+            }
+            public int getId() {
+                return id;
+            }
+
+            public String getName() {
+                return name;
+            }
+        }
+
+        LinkedListDeque<Student> students = new LinkedListDeque<>();
+
+        Student student0 = new Student(0, "Adrian");
+        Student student1 = new Student(1, "Kaitlyn");
+        Student student2 = new Student(2, "Nora");
+        Student student3 = new Student(3, "Alonso");
+        Student student4 = new Student(4, "Darwen");
+        Student student5 = new Student(5, "Bryan");
+        Student student6 = new Student(6, "Natalie");
+
+        students.addLast(student1);
+        students.addLast(student2);
+        students.addLast(student3);
+        students.addLast(student4);
+        students.addLast(student5);
+        students.addLast(student6);
+        students.addFirst(student0);
+
+        Student test1 = students.get(2);
+        assertEquals(2, test1.getId());
+        assertEquals("Nora", test1.getName());
+
+        Student test2 = students.removeFirst();
+        assertEquals(0, test2.getId());
+        assertEquals("Adrian", test2.getName());
+    }
 }
