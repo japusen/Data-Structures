@@ -126,6 +126,16 @@ public class LinkedListDequeTest {
     }
 
     @Test
+    public void getRecursiveTest() {
+        LinkedListDeque<Integer> l = new LinkedListDeque<Integer>();
+        for (int i = 0; i < 10; i++) {
+            l.addLast(i);
+        }
+
+        assertEquals("getRecursive", 5, (int) l.getRecursive(5));
+    }
+
+    @Test
     public void equalsNull() {
         LinkedListDeque<Integer> l = new LinkedListDeque<Integer>();
         for (int i = 0; i < 10; i++) {
