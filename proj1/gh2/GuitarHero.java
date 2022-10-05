@@ -15,7 +15,7 @@ public class GuitarHero {
         GuitarString[] strings = new GuitarString[keyboard.length()];
         for (int i = 0; i < strings.length; i++) {
             //440⋅2^[(i−24)/12]
-            double frequency = 440 * Math.pow(2, (i-24)/12);
+            double frequency = 440 * Math.pow(2, (i - 24) / 12);
             strings[i] = new GuitarString(frequency);
         }
 
