@@ -2,15 +2,15 @@ package deque;
 
 import java.util.Iterator;
 
-public interface Deque<Item> {
-    void addFirst(Item x);
-    void addLast(Item y);
-    Item removeFirst();
-    Item removeLast();
-    Item get(int i);
+public interface Deque<T> {
+    void addFirst(T x);
+    void addLast(T x);
     int size();
     void printDeque();
-    Iterator<Item> iterator();
+    T removeFirst();
+    T removeLast();
+    T get(int i);
+    Iterator<T> iterator();
     boolean equals(Object o);
 
 

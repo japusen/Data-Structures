@@ -143,12 +143,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             return false;
         }
 
-        Deque<T> comp;
-        if (o instanceof ArrayDeque) {
-            comp = (ArrayDeque<T>) o;
-        } else {
-            comp = (LinkedListDeque<T>) o;
-        }
+        Deque<T> comp = (Deque<T>) o;
 
         if (this == comp) {
             return true;
@@ -158,10 +153,10 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             return false;
         }
 
-        Iterator<T> compIter = comp.iterator();
-
-        for (T item : this) {
-            if (!item.equals(compIter.next())) {
+        for (int index = 0; index < size; index++) {
+            T item1 = get(index);
+            T item2 = comp.get(index);
+            if (!item1.equals(item2)) {
                 return false;
             }
         }
