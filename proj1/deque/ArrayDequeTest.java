@@ -1,6 +1,9 @@
 package deque;
 
 import org.junit.Test;
+
+import java.util.Iterator;
+
 import static org.junit.Assert.*;
 
 
@@ -125,7 +128,8 @@ public class ArrayDequeTest {
         }
     }
 
-    @Test public void equalsEmpty() {
+    @Test
+    public void equalsEmpty() {
         ArrayDeque<Integer> lld1 = new ArrayDeque<Integer>();
         for (int i = 0; i < 10; i++) {
             lld1.addLast(i);
@@ -150,5 +154,24 @@ public class ArrayDequeTest {
         assertEquals("equals: same size, different values", false, lld1.equals(lld4));
         assertEquals("equals: same pointer", true, lld1.equals(lld2));
         assertEquals("equals: same", true, lld1.equals(lld5));
+    }
+
+    @Test
+    /* Add large number of elements to deque; check if order is correct. */
+    public void iteratorTest() {
+
+        ArrayDeque<Integer> lld1 = new ArrayDeque<Integer>();
+        for (int i = 0; i < 100; i++) {
+            lld1.addLast(i);
+        }
+
+        for (int i = 0; i < 10; i++) {
+            lld1.removeFirst();
+        }
+
+        Iterator<Integer> iter = lld1.iterator();
+        for (int i = 10; i < 100; i++) {
+            assertEquals("Iterator next item", (Integer) i, iter.next());
+        }
     }
 }

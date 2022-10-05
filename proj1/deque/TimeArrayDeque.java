@@ -3,7 +3,9 @@ package deque;
 import edu.princeton.cs.algs4.Stopwatch;
 
 public class TimeArrayDeque {
-    private static void printTimingTable(ArrayDeque<Integer> Ns, ArrayDeque<Double> times, ArrayDeque<Integer> opCounts) {
+    private static void printTimingTable(ArrayDeque<Integer> Ns,
+                                         ArrayDeque<Double> times,
+                                         ArrayDeque<Integer> opCounts) {
         System.out.printf("%12s %12s %12s %12s\n", "N", "time (s)", "# ops", "microsec/op");
         System.out.printf("------------------------------------------------------------\n");
         for (int i = 0; i < Ns.size(); i += 1) {
@@ -21,12 +23,11 @@ public class TimeArrayDeque {
     }
 
     public static void timeAdd() {
-        // TODO: YOUR CODE HERE
-        ArrayDeque<Integer> Ns = new ArrayDeque<>();
+        ArrayDeque<Integer> n = new ArrayDeque<>();
         ArrayDeque<Double> times = new ArrayDeque<>();
 
         for (int i = 1000; i <= 128000; i *= 2) {
-            Ns.addLast(i);
+            n.addLast(i);
             ArrayDeque<Integer> test = new ArrayDeque<>();
             Stopwatch sw = new Stopwatch();
 
@@ -39,16 +40,15 @@ public class TimeArrayDeque {
             times.addLast(timeInSeconds);
         }
 
-        printTimingTable(Ns, times, Ns);
+        printTimingTable(n, times, n);
     }
 
     public static void timeRemove() {
-        // TODO: YOUR CODE HERE
-        ArrayDeque<Integer> Ns = new ArrayDeque<>();
+        ArrayDeque<Integer> n = new ArrayDeque<>();
         ArrayDeque<Double> times = new ArrayDeque<>();
 
         for (int i = 1000; i <= 128000; i *= 2) {
-            Ns.addLast(i);
+            n.addLast(i);
             ArrayDeque<Integer> test = new ArrayDeque<>();
 
             for (int iter = 0; iter < i; iter++) {
@@ -66,7 +66,7 @@ public class TimeArrayDeque {
             times.addLast(timeInSeconds);
         }
 
-        printTimingTable(Ns, times, Ns);
+        printTimingTable(n, times, n);
     }
     
 }

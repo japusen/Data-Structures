@@ -60,39 +60,43 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         System.out.println();
     }
 
-    /** Removes and returns the item at the front of the deque. If no such item exists, returns null. */
+    /** Removes and returns the item at the front of the deque.
+     * If no such item exists, returns null. */
     @Override
     public T removeFirst() {
         if (isEmpty()) {
             return null;
         }
 
+        size--;
         if ((size < array.length / 4) && (size >= 16)) {
             resize(array.length / 2);
         }
-
-        size--;
         incrementFirstIndex();
         return array[nextFirst];
     }
 
-    /** Removes and returns the item at the back of the deque. If no such item exists, returns null. */
+    /** Removes and returns the item at the back of the deque.
+     * If no such item exists, returns null. */
     @Override
     public T removeLast() {
         if (isEmpty()) {
             return null;
         }
 
+        size--;
         if ((size < array.length / 4) && (size >= 16)) {
             resize(array.length / 2);
         }
-
-        size--;
         decrementLastIndex();
         return array[nextLast];
+
+
     }
 
-    /** Gets the item at the given index, where 0 is the front, 1 is the next item, and so forth.
+
+    /** Gets the item at the given index, where 0 is the front,
+     * 1 is the next item, and so forth.
      * If no such item exists, returns null. Must not alter the deque! */
     @Override
     public T get(int index) {
@@ -113,7 +117,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
     private class ADequeIterator implements Iterator<T> {
         private int pos;
 
-        public ADequeIterator() {
+        ADequeIterator() {
             pos = 0;
         }
         @Override
@@ -123,7 +127,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
 
         @Override
         public T next() {
-            T item = get(adjustedIndex(pos));
+            T item = get(pos);
             pos += 1;
             return item;
         }
@@ -131,10 +135,11 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
 
     /** Returns whether the parameter o is equal to the Deque.
      * o is considered equal if it is a Deque and if it contains the same contents
-     * (as governed by the generic T’s equals method) in the same order. (ADDED 2/12: You’ll need to use the instance of keywords for this.) */
+     * (as governed by the generic T’s equals method) in the same order.
+     * (ADDED 2/12: You’ll need to use the instance of keywords for this.) */
     @Override
     public boolean equals(Object o) {
-        if (o == null || !(o instanceof ArrayDeque)) {
+        if (o == null || !(o instanceof Deque)) {
             return false;
         }
 
@@ -143,14 +148,15 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         if (this == comp) {
             return true;
         }
+
         if (this.size() != comp.size()) {
             return false;
         }
 
         Iterator<T> compIter = comp.iterator();
 
-        for(T item : this) {
-            if(!item.equals(compIter.next())) {
+        for (T item : this) {
+            if (!item.equals(compIter.next())) {
                 return false;
             }
         }

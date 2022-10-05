@@ -7,8 +7,8 @@ import static org.junit.Assert.*;
 public class RandomizedTest {
     @Test
     public void randomizedTest() {
-        LinkedListDeque<Integer> Linked = new LinkedListDeque<>();
-        ArrayDeque<Integer> Array = new ArrayDeque<>();
+        LinkedListDeque<Integer> linked = new LinkedListDeque<>();
+        ArrayDeque<Integer> array = new ArrayDeque<>();
 
         int N = 100000;
         for (int i = 0; i < N; i += 1) {
@@ -17,55 +17,55 @@ public class RandomizedTest {
             if (operationNumber == 0) {
                 // addLast
                 int randVal = StdRandom.uniform(0, 100);
-                Linked.addLast(randVal);
-                Array.addLast(randVal);
+                linked.addLast(randVal);
+                array.addLast(randVal);
 
             } else if (operationNumber == 1) {
                 // addFirst
                 int randVal = StdRandom.uniform(0, 100);
-                Linked.addFirst(randVal);
-                Array.addFirst(randVal);
+                linked.addFirst(randVal);
+                array.addFirst(randVal);
 
             } else if (operationNumber == 2) {
                 //removeLast
-                if (Linked.size() == 0) {
+                if (linked.size() == 0) {
                     continue;
                 } else {
-                    Integer LinkedLast = Linked.removeLast();
-                    Integer ArrayLast = Array.removeLast();
-                    assertEquals(LinkedLast, ArrayLast);
+                    Integer linkedLast = linked.removeLast();
+                    Integer arrayLast = array.removeLast();
+                    assertEquals(linkedLast, arrayLast);
                 }
 
             } else if (operationNumber == 3) {
                 //remove first
-                if (Linked.size() == 0) {
+                if (linked.size() == 0) {
                     continue;
                 } else {
-                    Integer LinkedLast = Linked.removeFirst();
-                    Integer ArrayLast = Array.removeFirst();
-                    assertEquals(LinkedLast, ArrayLast);
+                    Integer linkedLast = linked.removeFirst();
+                    Integer arrayLast = array.removeFirst();
+                    assertEquals(linkedLast, arrayLast);
                 }
 
             } else if (operationNumber == 4) {
                 // size
-                int LinkedSize = Linked.size();
-                int ArraySize = Array.size();
-                assertEquals(LinkedSize, ArraySize);
+                int linkedSize = linked.size();
+                int arraySize = array.size();
+                assertEquals(linkedSize, arraySize);
 
             } else if (operationNumber == 5) {
                 //isEmpty
-                boolean LinkedEmpty = Linked.isEmpty();
-                boolean ArrayEmpty = Array.isEmpty();
-                assertEquals(LinkedEmpty, ArrayEmpty);
+                boolean linkedEmpty = linked.isEmpty();
+                boolean arrayEmpty = array.isEmpty();
+                assertEquals(linkedEmpty, arrayEmpty);
 
             } else if (operationNumber == 6) {
                 //get
-                if (Linked.size() == 0) {
+                if (linked.size() == 0) {
                     continue;
                 }
-                Integer LinkedItem = Linked.get(0);
-                Integer ArrayItem = Array.get(0);
-                assertEquals(LinkedItem, ArrayItem);
+                Integer linkedItem = linked.get(0);
+                Integer arrayItem = array.get(0);
+                assertEquals(linkedItem, arrayItem);
             }
         }
     }

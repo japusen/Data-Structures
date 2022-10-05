@@ -2,16 +2,16 @@ package deque;
 
 import java.util.Iterator;
 
-public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
+public class LinkedListDeque<T> implements Deque<T> , Iterable<T> {
     private IntNode sentinel;
     private int size;
 
-    public class IntNode {
-        public IntNode prev;
-        public T item;
-        public IntNode next;
+    private class IntNode {
+        IntNode prev;
+        T item;
+        IntNode next;
 
-        public IntNode(T elem) {
+        IntNode(T elem) {
             item = elem;
         }
     }
@@ -69,7 +69,8 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
         System.out.println();
     }
 
-    /** Removes and returns the item at the front of the deque. If no such item exists, returns null. */
+    /** Removes and returns the item at the front of the deque.
+     * If no such item exists, returns null. */
     @Override
     public T removeFirst() {
         if (isEmpty()) {
@@ -84,7 +85,8 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
         return first.item;
     }
 
-    /** Removes and returns the item at the back of the deque. If no such item exists, returns null. */
+    /** Removes and returns the item at the back of the deque.
+     * If no such item exists, returns null. */
     @Override
     public T removeLast() {
         if (isEmpty()) {
@@ -127,7 +129,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
     private class LLDequeIterator implements Iterator<T> {
         private int pos;
 
-        public LLDequeIterator() {
+        LLDequeIterator() {
             pos = 0;
         }
         @Override
@@ -145,10 +147,11 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
 
     /** Returns whether the parameter o is equal to the Deque.
      * o is considered equal if it is a Deque and if it contains the same contents
-     * (as governed by the generic T’s equals method) in the same order. (ADDED 2/12: You’ll need to use the instance of keywords for this.) */
+     * (as governed by the generic T’s equals method) in the same order.
+     * (ADDED 2/12: You’ll need to use the instance of keywords for this.) */
     @Override
     public boolean equals(Object o) {
-        if (o == null || !(o instanceof LinkedListDeque)) {
+        if (o == null || !(o instanceof Deque)) {
             return false;
         }
 
@@ -163,8 +166,8 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T>{
 
         Iterator<T> compIter = comp.iterator();
 
-        for(T item : this) {
-            if(!item.equals(compIter.next())) {
+        for (T item : this) {
+            if (!item.equals(compIter.next())) {
                 return false;
             }
         }

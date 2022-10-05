@@ -3,7 +3,9 @@ package deque;
 import edu.princeton.cs.algs4.Stopwatch;
 
 public class TimeLLDeque {
-    private static void printTimingTable(LinkedListDeque<Integer> Ns, LinkedListDeque<Double> times, LinkedListDeque<Integer> opCounts) {
+    private static void printTimingTable(LinkedListDeque<Integer> Ns,
+                                         LinkedListDeque<Double> times,
+                                         LinkedListDeque<Integer> opCounts) {
         System.out.printf("%12s %12s %12s %12s\n", "N", "time (s)", "# ops", "microsec/op");
         System.out.printf("------------------------------------------------------------\n");
         for (int i = 0; i < Ns.size(); i += 1) {
@@ -21,12 +23,11 @@ public class TimeLLDeque {
     }
 
     public static void timeAdd() {
-        // TODO: YOUR CODE HERE
-        LinkedListDeque<Integer> Ns = new LinkedListDeque<>();
+        LinkedListDeque<Integer> n = new LinkedListDeque<>();
         LinkedListDeque<Double> times = new LinkedListDeque<>();
 
         for (int i = 1000; i <= 128000; i *= 2) {
-            Ns.addLast(i);
+            n.addLast(i);
             LinkedListDeque<Integer> test = new LinkedListDeque<>();
             Stopwatch sw = new Stopwatch();
 
@@ -39,16 +40,15 @@ public class TimeLLDeque {
             times.addLast(timeInSeconds);
         }
 
-        printTimingTable(Ns, times, Ns);
+        printTimingTable(n, times, n);
     }
 
     public static void timeRemove() {
-        // TODO: YOUR CODE HERE
-        LinkedListDeque<Integer> Ns = new LinkedListDeque<>();
+        LinkedListDeque<Integer> n = new LinkedListDeque<>();
         LinkedListDeque<Double> times = new LinkedListDeque<>();
 
         for (int i = 1000; i <= 128000; i *= 2) {
-            Ns.addLast(i);
+            n.addLast(i);
             LinkedListDeque<Integer> test = new LinkedListDeque<>();
 
             for (int iter = 0; iter < i; iter++) {
@@ -66,7 +66,7 @@ public class TimeLLDeque {
             times.addLast(timeInSeconds);
         }
 
-        printTimingTable(Ns, times, Ns);
+        printTimingTable(n, times, n);
     }
 
 }
