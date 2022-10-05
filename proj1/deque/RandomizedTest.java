@@ -10,7 +10,7 @@ public class RandomizedTest {
         LinkedListDeque<Integer> linked = new LinkedListDeque<>();
         ArrayDeque<Integer> array = new ArrayDeque<>();
 
-        int N = 100000;
+        int N = 1000000;
         for (int i = 0; i < N; i += 1) {
             int operationNumber = StdRandom.uniform(0, 4);
 

@@ -25,7 +25,6 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         decrementFirstIndex();
         size++;
 
-        //rethink condition
         if (size == array.length) {
             resize(array.length * 2);
         }
@@ -38,7 +37,6 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         incrementLastIndex();
         size++;
 
-        //rethink condition
         if (size == array.length) {
             resize(array.length * 2);
         }
@@ -68,10 +66,11 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             return null;
         }
 
-        size--;
-        if ((size < array.length / 4) && (size >= 16)) {
+        if ((size-1 < array.length / 4) && (size-1 >= 16)) {
             resize(array.length / 2);
         }
+
+        size--;
         incrementFirstIndex();
         return array[nextFirst];
     }
@@ -84,10 +83,11 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
             return null;
         }
 
-        size--;
-        if ((size < array.length / 4) && (size >= 16)) {
+        if ((size-1 < array.length / 4) && (size-1 >= 16)) {
             resize(array.length / 2);
         }
+
+        size--;
         decrementLastIndex();
         return array[nextLast];
 
