@@ -4,9 +4,9 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.Set;
 
-public class BSTMap<K extends Comparable<K>, V> implements Map61B {
-    int size;
-    BSTNode root;
+public class BSTMap<K extends Comparable<K>, V> implements Map61B<K, V> {
+    private int size;
+    private BSTNode root;
 
     private class BSTNode {
         K key;
@@ -47,7 +47,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B {
     }
 
     /** Prints out BSTMap in order of increasing Key */
-    void printInOrder() {
+    public void printInOrder() {
         printHelper(root);
     }
 
@@ -70,8 +70,8 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B {
 
     /** Returns true if this map contains a mapping for the specified key. */
     @Override
-    public boolean containsKey(Object key) {
-        return containsHelper(root, (K) key);
+    public boolean containsKey(K key) {
+        return containsHelper(root, key);
     }
 
     private boolean containsHelper(BSTNode node, K key) {
@@ -92,11 +92,11 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B {
      * map contains no mapping for the key.
      */
     @Override
-    public Object get(Object key) {
-        return getHelper(root, (K) key);
+    public V get(K key) {
+        return getHelper(root, key);
     }
 
-    private Object getHelper(BSTNode node, K key) {
+    private V getHelper(BSTNode node, K key) {
         if (node == null) {
             return null;
         }
@@ -119,12 +119,12 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B {
 
     /** Associates the specified value with the specified key in this map. */
     @Override
-    public void put(Object key, Object value) {
+    public void put(K key, V value) {
         if (containsKey(key)) {
             return;
         }
 
-        BSTNode node = new BSTNode((K) key, (V) value);
+        BSTNode node = new BSTNode(key, value);
         root = insert(root, node);
         size += 1;
     }
@@ -155,7 +155,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B {
      * Not required for Lab 7. If you don't implement this, throw an
      * UnsupportedOperationException. */
     @Override
-    public V remove(Object key) {
+    public V remove(K key) {
         throw new UnsupportedOperationException();
     }
 
@@ -163,7 +163,7 @@ public class BSTMap<K extends Comparable<K>, V> implements Map61B {
      * the specified value. Not required for Lab 7. If you don't implement this,
      * throw an UnsupportedOperationException.*/
     @Override
-    public V remove(Object key, Object value) {
+    public V remove(K key, V value) {
         throw new UnsupportedOperationException();
     }
 
