@@ -1,13 +1,12 @@
 package gitlet;
 
-import org.antlr.v4.runtime.tree.Tree;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.TreeMap;
 
+import static gitlet.Utils.serialize;
 import static gitlet.Utils.sha1;
 
 /** Represents a gitlet commit object.
@@ -29,8 +28,14 @@ public class Commit implements Serializable {
 
     /** The message of this Commit. */
     private String message;
+
+    /** The previous commit */
     private String parent;
+
+    /** The date and time of the commit */
     private Date time;
+
+    /** The names of the files and the blobIDs : File name -> blobID */
     private TreeMap<String, String> nameBlopsMap;
 
     public Commit(String message, String parent, Date time, TreeMap<String, String> nameBlopsMap) {
@@ -56,7 +61,8 @@ public class Commit implements Serializable {
      * Saves a commit to a file for future use.
      */
     public void saveCommit() {
-        File commitFile = Utils.join(Repository.COMMIT_DIR, sha1(this));
+        String commitID = getcommitID();
+        File commitFile = Utils.join(Repository.COMMIT_DIR, commitID);
         if (!commitFile.exists()) {
             try {
                 commitFile.createNewFile();
@@ -66,4 +72,19 @@ public class Commit implements Serializable {
         }
         Utils.writeObject(commitFile, this);
     }
+
+    /** Returns the hash of the commit */
+    public String getcommitID() {
+        return sha1(serialize(this));
+    }
+
+    /** Returns true if the commit has the file fileName */
+    public boolean containsFile(String fileName) {
+        return nameBlopsMap.containsKey(fileName);
+    }
+
+    public String getBlobID(String fileName) {
+        return nameBlopsMap.get(fileName);
+    }
+
 }

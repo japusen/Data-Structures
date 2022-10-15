@@ -54,22 +54,52 @@ public class Repository {
             Staging.STAGING_FILE.createNewFile();
 
             // Create the origin commit and save it to the commit folder
-            Commit originCommit = new Commit("initial commit", "", new Date(0), null);
-            String originCommitHash = sha1(originCommit);
+            Commit originCommit = new Commit("initial commit", null, new Date(0), null);
             originCommit.saveCommit();
+            String originID = originCommit.getcommitID();
+
 
             // Create the MASTER branch and HEAD mappings to the origin commit
             Branch branch = new Branch();
-            branch.updateMaster(originCommitHash);
-            branch.updateHEAD(originCommitHash);
+            branch.updateMaster(originID);
+            branch.updateHEAD(originID);
             branch.saveBranch();
 
             // Create an empty staging area and save it
             Staging stagingArea = new Staging();
-            stagingArea.saveStaging();
+            stagingArea.saveStagingArea();
 
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+
+    }
+
+    public static void add(String fileName) {
+        File addedFile = Utils.join(Repository.CWD, fileName);
+        // Make sure the file exists
+        validateFile(addedFile);
+
+        // Get the blob hash
+        String newBlobID= getBlob(addedFile);
+
+        // Get the commit from the HEAD
+        Commit headCommit = Branch.getHEADCommit();
+
+        // Check for the file in the commit, if it exists compare it to the blob of the fileName
+        if (headCommit.containsFile(fileName)) {
+            String headBlobID = headCommit.getBlobID(fileName);
+
+            // If the blobs are the same, cancel the add if it's already staged
+            // Otherwise, stage it for adding and cancel removal if it was staged
+            if (sameBlobs(newBlobID, headBlobID)) {
+                Staging.cancelAdd(fileName);
+            } else {
+                Staging.stageAdd(fileName, newBlobID);
+                Staging.cancelRemove(fileName);
+                // Create the blob file
+                saveNewBlob(newBlobID, readContents(addedFile));
+            }
         }
 
     }
@@ -83,13 +113,44 @@ public class Repository {
             return fileMap;
         }
 
-        for (String name : file_names) {
-            File currentFile = Utils.join(CWD, name);
-            byte[] contents = readContents(currentFile);
+        for (String blobID : file_names) {
+            File currentBlob = Utils.join(CWD, blobID);
+            byte[] contents = readContents(currentBlob);
             String hash = sha1(contents);
-            fileMap.put(name, hash);
+            fileMap.put(blobID, hash);
         }
 
         return fileMap;
+    }
+
+    /** Checks if the file exists in the CWD.
+     * Prints error message and exits the command if it does not */
+    public static void validateFile(File file) {
+        if (!file.exists()) {
+            System.out.println("File does not exist.");
+            System.exit(0);
+        }
+    }
+
+    /** Returns the blob hash of the given file */
+    public static String getBlob(File file) {
+        byte[] fileContents = readContents(file);
+        return sha1(fileContents);
+    }
+
+    /** Returns true if the blobs are the same */
+    public static boolean sameBlobs(String id1, String id2) {
+        return id1.equals(id2);
+    }
+
+    /** Creates a new blob file in the BLOB_DIR */
+    public static void saveNewBlob(String blobID, byte[] contents) {
+        File blobFile = join(BLOB_DIR, blobID);
+        try {
+            blobFile.createNewFile();
+            writeContents(blobFile, contents);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

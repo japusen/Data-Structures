@@ -1,5 +1,7 @@
 package gitlet;
 
+import java.io.File;
+
 /** Driver class for Gitlet, a subset of the Git version-control system.
  *  @author Julius Apusen
  */
@@ -24,11 +26,13 @@ public class Main {
                 }
                 Repository.initialize();
                 break;
+
             case "add":
                 validateNumArgs(args, 2);
                 validateRepo();
-                // TODO: handle the `add [filename]` command
+                Repository.add(args[1]);
                 break;
+
             default:
                 System.out.println("No command with that name exists.");
                 System.exit(0);
