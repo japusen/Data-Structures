@@ -72,7 +72,6 @@ public class Main {
         default:
             exitWithError(String.format("Unknown command: %s", args[0]));
         }
-        return;
     }
 
     /**
@@ -83,8 +82,8 @@ public class Main {
      * @param args Argument array from command line
      * @param n Number of expected arguments
      */
-    public static void validateNumArgs(String cmd, String[] args, int n) {
-        if (args.length != n) {
+     public static void validateNumArgs(String cmd, String[] args, int n) {
+            if (args.length != n) {
             throw new RuntimeException(
                 String.format("Invalid number of arguments for: %s.", cmd));
         }
