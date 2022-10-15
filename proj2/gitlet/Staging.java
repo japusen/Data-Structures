@@ -1,8 +1,11 @@
 package gitlet;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.TreeMap;
+
+
 
 public class Staging implements Serializable {
 
@@ -30,13 +33,14 @@ public class Staging implements Serializable {
         Utils.writeObject(STAGING_FILE, this);
     }
 
+
     /** Stages the file for adding */
-    public static void stageAdd(String fileName, String blobID) {
+    public void stageAdd(String fileName, String blobID) {
         add.put(fileName, blobID);
     }
 
     /** Cancels the add for the file */
-    public static void cancelAdd(String fileName) {
+    public void cancelAdd(String fileName) {
         add.remove(fileName);
     }
 
@@ -46,7 +50,7 @@ public class Staging implements Serializable {
     }
 
     /** Cancels the remove for the file */
-    public static void cancelRemove(String fileName) {
+    public void cancelRemove(String fileName) {
         remove.remove(fileName);
     }
 

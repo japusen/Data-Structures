@@ -21,6 +21,7 @@ public class Branch implements Serializable {
     /** Points the MASTER branch to the provided commit */
     public void updateMaster(String commit) {
         branches.put(MASTER, commit);
+        saveBranch();
     }
 
     /** Points the HEAD branch to the provided commit */
@@ -34,13 +35,13 @@ public class Branch implements Serializable {
     }
 
     /** Returns the commit that HEAD points to */
-    public static Commit getHEADCommit() {
+    public Commit getHEADCommit() {
         String headHash = branches.get(HEAD);
         return Commit.fromFile(headHash);
     }
 
     /** Returns the commit that Master points to */
-    public static Commit getMasterCommit() {
+    public Commit getMasterCommit() {
         String masterHash = branches.get(MASTER);
         return Commit.fromFile(masterHash);
     }

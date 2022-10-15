@@ -6,9 +6,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.TreeMap;
 
-import static gitlet.Utils.*;
-
-// TODO: any imports you need here
 
 /** Represents a gitlet repository.
  * .gitlet/ -- top level folder for all persistent data in working directory
@@ -32,7 +29,7 @@ public class Repository {
     public static final File CWD = new File(System.getProperty("user.dir"));
 
     /** The .gitlet directory. */
-    public static final File GITLET_DIR = join(CWD, ".gitlet");
+    public static final File GITLET_DIR = Utils.join(CWD, ".gitlet");
 
     /** Folder that dogs live in. */
     static final File COMMIT_DIR = Utils.join(Repository.GITLET_DIR, "commits");
@@ -49,25 +46,25 @@ public class Repository {
         COMMIT_DIR.mkdir();
         BLOB_DIR.mkdir();
         try {
-            //Initialize the branch and staging files
+            //Create the branch file and staging area file
             Branch.BRANCH_FILE.createNewFile();
             Staging.STAGING_FILE.createNewFile();
 
-            // Create the origin commit and save it to the commit folder
+            // Create the origin Commit obj and save it to COMMIT_DIR
             Commit originCommit = new Commit("initial commit", null, new Date(0), null);
-            originCommit.saveCommit();
-            String originID = originCommit.getcommitID();
+            originCommit.saveCommitToDir();
+            String originID = originCommit.getCommitID();
 
 
             // Create the MASTER branch and HEAD mappings to the origin commit
-            Branch branch = new Branch();
-            branch.updateMaster(originID);
-            branch.updateHEAD(originID);
-            branch.saveBranch();
+            Branch branches = new Branch();
+            branches.updateMaster(originID);
+            branches.updateHEAD(originID);
+            branches.saveBranch();
 
             // Create an empty staging area and save it
             Staging stagingArea = new Staging();
-            stagingArea.saveStagingArea();
+            stagingArea.saveStagingArea(); // TODO fix how to save globally
 
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -80,11 +77,15 @@ public class Repository {
         // Make sure the file exists
         validateFile(addedFile);
 
+        // Get the Staging Area and Branches
+        Staging stagingArea = Staging.fromFile();
+        Branch branches = Branch.fromFile();
+
         // Get the blob hash
-        String newBlobID= getBlob(addedFile);
+        String newBlobID= getBlobID(addedFile);
 
         // Get the commit from the HEAD
-        Commit headCommit = Branch.getHEADCommit();
+        Commit headCommit = branches.getHEADCommit();
 
         // Check for the file in the commit, if it exists compare it to the blob of the fileName
         if (headCommit.containsFile(fileName)) {
@@ -92,13 +93,16 @@ public class Repository {
 
             // If the blobs are the same, cancel the add if it's already staged
             // Otherwise, stage it for adding and cancel removal if it was staged
-            if (sameBlobs(newBlobID, headBlobID)) {
-                Staging.cancelAdd(fileName);
+            if (sameBlobID(newBlobID, headBlobID)) {
+                stagingArea.cancelAdd(fileName);
+                stagingArea.saveStagingArea();
+
             } else {
-                Staging.stageAdd(fileName, newBlobID);
-                Staging.cancelRemove(fileName);
+                stagingArea.stageAdd(fileName, newBlobID);
+                stagingArea.cancelRemove(fileName);
+                stagingArea.saveStagingArea();
                 // Create the blob file
-                saveNewBlob(newBlobID, readContents(addedFile));
+                saveNewBlob(newBlobID, Utils.readContents(addedFile));
             }
         }
 
@@ -108,15 +112,15 @@ public class Repository {
     public TreeMap<String, String> getCwdFiles() {
         TreeMap<String, String> fileMap = new TreeMap<>();
 
-        List<String> file_names = plainFilenamesIn(CWD);
+        List<String> file_names = Utils.plainFilenamesIn(CWD);
         if (file_names == null) {
             return fileMap;
         }
 
         for (String blobID : file_names) {
             File currentBlob = Utils.join(CWD, blobID);
-            byte[] contents = readContents(currentBlob);
-            String hash = sha1(contents);
+            byte[] contents = Utils.readContents(currentBlob);
+            String hash = Utils.sha1(contents);
             fileMap.put(blobID, hash);
         }
 
@@ -132,23 +136,23 @@ public class Repository {
         }
     }
 
-    /** Returns the blob hash of the given file */
-    public static String getBlob(File file) {
-        byte[] fileContents = readContents(file);
-        return sha1(fileContents);
+    /** Returns the blob ID of the given file */
+    public static String getBlobID(File file) {
+        byte[] fileContents = Utils.readContents(file);
+        return Utils.sha1(fileContents);
     }
 
     /** Returns true if the blobs are the same */
-    public static boolean sameBlobs(String id1, String id2) {
+    public static boolean sameBlobID(String id1, String id2) {
         return id1.equals(id2);
     }
 
     /** Creates a new blob file in the BLOB_DIR */
     public static void saveNewBlob(String blobID, byte[] contents) {
-        File blobFile = join(BLOB_DIR, blobID);
+        File blobFile = Utils.join(BLOB_DIR, blobID);
         try {
             blobFile.createNewFile();
-            writeContents(blobFile, contents);
+            Utils.writeContents(blobFile, contents);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

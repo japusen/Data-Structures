@@ -6,9 +6,6 @@ import java.io.Serializable;
 import java.util.Date;
 import java.util.TreeMap;
 
-import static gitlet.Utils.serialize;
-import static gitlet.Utils.sha1;
-
 /** Represents a gitlet commit object.
  *  TODO: It's a good idea to give a description here of what else this Class
  *  does at a high level.
@@ -46,22 +43,22 @@ public class Commit implements Serializable {
     }
 
     /**
-     * Reads in and deserializes a commit from a file with name NAME in COMMIT_DIR.
+     * Reads in and deserializes a Commit from a file with given commitID in COMMIT_DIR.
      *
-     * @param name Name of commit to load
+     * @param commitID Name of commit to load
      * @return Commit read from file
      */
-    public static Commit fromFile(String name) {
-        File commitFile = Utils.join(Repository.COMMIT_DIR, name);
+    public static Commit fromFile(String commitID) {
+        File commitFile = Utils.join(Repository.COMMIT_DIR, commitID);
         Commit commit = Utils.readObject(commitFile, Commit.class);
         return commit;
     }
 
     /**
-     * Saves a commit to a file for future use.
+     * Saves a Commit to a file for future use.
      */
-    public void saveCommit() {
-        String commitID = getcommitID();
+    public void saveCommitToDir() {
+        String commitID = getCommitID();
         File commitFile = Utils.join(Repository.COMMIT_DIR, commitID);
         if (!commitFile.exists()) {
             try {
@@ -73,16 +70,17 @@ public class Commit implements Serializable {
         Utils.writeObject(commitFile, this);
     }
 
-    /** Returns the hash of the commit */
-    public String getcommitID() {
-        return sha1(serialize(this));
+    /** Returns the ID of the commit */
+    public String getCommitID() {
+        return Utils.sha1(Utils.serialize(this));
     }
 
-    /** Returns true if the commit has the file fileName */
+    /** Returns true if the Commit has the file fileName */
     public boolean containsFile(String fileName) {
         return nameBlopsMap.containsKey(fileName);
     }
 
+    /** Returns the blobID for the associated fileName */
     public String getBlobID(String fileName) {
         return nameBlopsMap.get(fileName);
     }
