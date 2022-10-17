@@ -1,20 +1,24 @@
 package gitlet;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.TreeMap;
 
-
-
+/** Represents a gitlet repository staging area
+ *  Mantains the staging area of the repo
+ *
+ *  @author Julius Apusen
+ */
 public class Staging implements Serializable, Dumpable {
+    /**
+     * STAGING_FILE -- File that contains the serialized objects
+     * add -- Files in staging area to add to commit : File name -> blobID
+     * remove -- Files in staging area to remove from commit : File name -> blobID
+     *
+     */
 
     static final File STAGING_FILE = Utils.join(Repository.GITLET_DIR, "staging");
-
-    /** Files in staging area to add to commit : File name -> blobID */
     private TreeMap<String, String> add;
-
-    /** Files in staging area to remove from commit : File name -> blobID */
     private TreeMap<String, String> remove;
 
     Staging() {

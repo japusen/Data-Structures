@@ -1,20 +1,28 @@
 package gitlet;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.TreeMap;
 
+/** Represents the gitlet repository branches
+ *  Maintains the state of the branches and the HEAD pointer in the repository
+ *
+ *  @author Julius Apusen
+ */
 public class Branch implements Serializable, Dumpable {
+    /**
+     * BRANCH_FILE -- File that contains the serialized objects
+     * HEAD -- the name of the HEAD pointer
+     * MASTER -- the name of the Master branch
+     * branchMap -- Branches and their associated commit : Branch Name -> commitID
+     * currentBranch -- The current branch being worked on
+     *
+     */
 
     static final File BRANCH_FILE = Utils.join(Repository.GITLET_DIR, "branches");
     static final String HEAD = "HEAD";
-    static final String MASTER = "Master";
-
-    /** Mapping for branches : Branch Name -> hash of commit being pointed to */
+    static final String MASTER = "master";
     private TreeMap<String, String> branchMap;
-
-    /** The current branch being worked on */
     private String currentBranch;
 
     Branch(String commitID) {
@@ -38,6 +46,11 @@ public class Branch implements Serializable, Dumpable {
     /** Adds a new branch with the corresponding commit */
     public void newBranch(String branch, String commitID) {
         branchMap.put(branch, commitID);
+    }
+
+    /** Returns true if branch already exists in branches */
+    public boolean containsBranch(String branchName) {
+        return branchMap.containsKey(branchName);
     }
 
     /** Returns the commit that HEAD points to */

@@ -2,6 +2,8 @@ package gitlet;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.TreeMap;
@@ -22,24 +24,17 @@ public class Repository {
     /**
      * CWD -- File path to the current working directory
      * GITLET_DIR -- File path to the hidden .gitlet repository directory
-     *
-     * List all instance variables of the Repository class here with a useful
-     * comment above them describing what that variable represents and how that
-     * variable is used. We've provided two examples for you.
+     * COMMIT_DIR -- File path to the hidden commits directory
+     * BLOB_DIR -- File path to the hidden blob directory
+     * dateFormat -- Format for printing out dates
+     * originCommitID -- the ID of the origin commit
      */
 
-    /** The current working directory. */
     static final File CWD = new File(System.getProperty("user.dir"));
-
-    /** The .gitlet directory. */
     public static final File GITLET_DIR = Utils.join(CWD, ".gitlet");
-
-    /** Folder that dogs live in. */
     static final File COMMIT_DIR = Utils.join(Repository.GITLET_DIR, "commits");
-
-    /** Folder that blobs live in. */
     static final File BLOB_DIR = Utils.join(Repository.GITLET_DIR, "blobs");
-
+    static final DateFormat dateFormat = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z");
     static String originCommitID;
 
     /**
@@ -56,7 +51,8 @@ public class Repository {
             STAGING_FILE.createNewFile();
 
             // Create the origin Commit obj and save it to COMMIT_DIR
-            Commit originCommit = new Commit("initial commit", null, new Date(0), new TreeMap<>());
+            Commit originCommit = new Commit("initial commit", null,
+                    dateFormat.format(new Date(0)).toString(), new TreeMap<>());
             originCommitID = originCommit.getCommitID();
             originCommit.saveToDir();
 
@@ -154,7 +150,7 @@ public class Repository {
         }
 
         // Create the New Commit
-        Commit newCommit = new Commit(message, prevCommitID, new Date(), commitFiles);
+        Commit newCommit = new Commit(message, prevCommitID, dateFormat.format(new Date()).toString(), commitFiles);
         String newCommitID = newCommit.getCommitID();
 
         // Update the head and current branch to the new commitID
@@ -205,6 +201,7 @@ public class Repository {
         }
     }
 
+    /** Prints the commits in the current branch */
     public static void log() {
         // Get Branches and Head Commit ID
         Branch branches = loadBranchesFromFile();
@@ -216,6 +213,59 @@ public class Repository {
             System.out.println(commit);
             commitID = commit.getParentID();
         }
+    }
+
+    /** Prints all the commits that have been made */
+    public static void globalLog() {
+        List<String> commitFileNames = Utils.plainFilenamesIn(COMMIT_DIR);
+        if (commitFileNames == null) {
+            return;
+        }
+        for (String fileName : commitFileNames) {
+            Commit commit = loadCommitFromFile(fileName);
+            System.out.println(commit);
+        }
+    }
+
+    /** Prints all the commits that have the message */
+    public static void find(String message) {
+        List<String> commitFileNames = Utils.plainFilenamesIn(COMMIT_DIR);
+        int count = 0;
+        if (commitFileNames == null) {
+            return;
+        }
+        for (String fileName : commitFileNames) {
+            Commit commit = loadCommitFromFile(fileName);
+            if (commit.getMessage().equals(message)) {
+                System.out.println(commit.getCommitID());
+                count++;
+            }
+        }
+        if (count == 0) {
+            System.out.println("Found no commit with that message.");
+        }
+    }
+
+    /** Prints out the status of the current working directory */
+    public static void status() {
+        // TODO
+    }
+
+    /** Creates a new branch at the HEAD */
+    public static void branch(String branchName) {
+        // Get the branches and head commitID
+        Branch branches = loadBranchesFromFile();
+        String headCommitID = branches.getHEADCommitID();
+
+        // Add the branch if it doesn't already exist
+        if (branches.containsBranch(branchName)) {
+            System.out.println("A branch with that name already exists.");
+        } else {
+            branches.newBranch(branchName, headCommitID);
+        }
+
+        // Save changes to branches
+        branches.saveToFile();
     }
 
     /** Returns a mapping of the current directory files and the hash of their contents */
@@ -265,8 +315,7 @@ public class Repository {
 
     /** Returns the branch object from the branch file */
     public static Branch loadBranchesFromFile() {
-        Branch branch = Utils.readObject(BRANCH_FILE, Branch.class);
-        return branch;
+        return Utils.readObject(BRANCH_FILE, Branch.class);
     }
 
     /**
@@ -277,14 +326,12 @@ public class Repository {
      */
     public static Commit loadCommitFromFile(String commitID) {
         File commitFile = Utils.join(Repository.COMMIT_DIR, commitID);
-        Commit commit = Utils.readObject(commitFile, Commit.class);
-        return commit;
+        return Utils.readObject(commitFile, Commit.class);
     }
 
     /** Returns the staging area from the staging file */
     public static Staging loadStagingAreaFromFile() {
-        Staging stagingArea = Utils.readObject(STAGING_FILE, Staging.class);
-        return stagingArea;
+        return Utils.readObject(STAGING_FILE, Staging.class);
     }
 
 }

@@ -1,7 +1,5 @@
 package gitlet;
 
-import java.io.File;
-
 /** Driver class for Gitlet, a subset of the Git version-control system.
  *  @author Julius Apusen
  */
@@ -32,9 +30,9 @@ public class Main {
                 Repository.add(args[1]);
                 break;
             case "commit":
-                validateNumArgs(args, 3);
+                validateNumArgs(args, 2);
                 validateCWD();
-                Repository.commit(args[2]);
+                Repository.commit(args[1]);
                 break;
             case "rm":
                 validateNumArgs(args, 2);
@@ -45,6 +43,42 @@ public class Main {
                 validateNumArgs(args, 1);
                 validateCWD();
                 Repository.log();
+                break;
+            case "global-log":
+                validateNumArgs(args, 1);
+                validateCWD();
+                Repository.globalLog();
+                break;
+            case "find":
+                validateNumArgs(args, 2);
+                validateCWD();
+                Repository.find(args[1]);
+                break;
+            case "status":
+                validateNumArgs(args, 1);
+                validateCWD();
+                Repository.status();
+                break;
+            case "checkout":
+                validateCWD();
+                if (args.length == 2) {
+                    String branchName = args[1];
+                    break;
+                } else if (args.length == 3) {
+                    String fileName = args[2];
+                    break;
+                } else if (args.length == 4) {
+                    String commitID = args[1];
+                    String fileName = args[3];
+                    break;
+                } else {
+                    System.out.println("Incorrect operands.");
+                }
+                break;
+            case "branch":
+                validateCWD();
+                validateNumArgs(args, 2);
+                Repository.branch(args[1]);
                 break;
             default:
                 System.out.println("No command with that name exists.");

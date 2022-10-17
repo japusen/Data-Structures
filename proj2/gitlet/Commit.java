@@ -2,47 +2,38 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.Date;
 import java.util.TreeMap;
 
 /** Represents a gitlet commit object.
- *  TODO: It's a good idea to give a description here of what else this Class
- *  does at a high level.
+ *  Create commits in the commit directory and relays information about individual commits
  *
  *  @author Julius Apusen
  */
 public class Commit implements Serializable, Dumpable {
     /**
-     * TODO: add instance variables here.
-     *
+     * message -- The message of this Commit
+     * parent -- The previous commit
+     * time -- The date and time of the commit
+     * commitFiles -- The names of the files being tracked : File name -> blobID
      * List all instance variables of the Commit class here with a useful
      * comment above them describing what that variable represents and how that
      * variable is used. We've provided one example for `message`.
      */
 
-
-    /** The message of this Commit. */
     private String message;
-
-    /** The previous commit */
     private String parentID;
-
-    /** The date and time of the commit */
-    private Date time;
-
-    /** The names of the files and the blobIDs : File name -> blobID */
+    private String time;
     private TreeMap<String, String> commitFiles;
 
-    public Commit(String message, String parent, Date time, TreeMap<String, String> commitFiles) {
+
+    public Commit(String message, String parent, String time, TreeMap<String, String> commitFiles) {
         this.message = message;
         this.parentID = parent;
         this.time = time;
         this.commitFiles = commitFiles;
     }
 
-    /**
-     * Saves a Commit to a file for future use.
-     */
+    /** Saves a Commit to a file for future use. */
     public void saveToDir() {
         String commitID = getCommitID();
         File commitFile = Utils.join(Repository.COMMIT_DIR, commitID);
@@ -57,6 +48,11 @@ public class Commit implements Serializable, Dumpable {
     /** Returns the ID of the parent commit */
     public String getParentID() {
         return parentID;
+    }
+
+    /** Returns the message of the commit */
+    public String getMessage() {
+        return message;
     }
 
     /** Returns the map of commit files */
@@ -89,6 +85,5 @@ public class Commit implements Serializable, Dumpable {
         System.out.printf("Commit%nID: %s%nParent: %s%nDate: %s%nMessage: %s%nFiles: %s%n",
                 getCommitID(), parentID, time.toString(), message, commitFiles);
     }
-
 
 }
