@@ -7,32 +7,30 @@ import java.util.TreeMap;
 
 
 
-public class Staging implements Serializable {
+public class Staging implements Serializable, Dumpable {
 
     static final File STAGING_FILE = Utils.join(Repository.GITLET_DIR, "staging");
 
     /** Files in staging area to add to commit : File name -> blobID */
-    private static TreeMap<String, String> add;
+    private TreeMap<String, String> add;
 
     /** Files in staging area to remove from commit : File name -> blobID */
-    private static TreeMap<String, String> remove;
+    private TreeMap<String, String> remove;
 
     Staging() {
         add = new TreeMap<>();
         remove = new TreeMap<>();
     }
 
-    /** Returns the staging area from the staging file */
-    public static Staging fromFile() {
-        Staging stagingArea = Utils.readObject(STAGING_FILE, Staging.class);
-        return stagingArea;
-    }
-
     /** Saves the state of the staging area to the file */
-    public void saveStagingArea() {
+    public void saveToFile() {
         Utils.writeObject(STAGING_FILE, this);
     }
 
+    /** Returns whether the file fileName is in the staging area */
+    public boolean containsFile(String fileName) {
+        return add.containsKey(fileName);
+    }
 
     /** Stages the file for adding */
     public void stageAdd(String fileName, String blobID) {
@@ -49,9 +47,29 @@ public class Staging implements Serializable {
         remove.put(fileName, blobID);
     }
 
-    /** Cancels the remove for the file */
+    /** Cancels the removal of a file */
     public void cancelRemove(String fileName) {
         remove.remove(fileName);
     }
 
+    /** Empties the staging area */
+    public void clear() {
+        add = new TreeMap<>();
+        remove = new TreeMap<>();
+    }
+
+    /** Returns the map with the files to be added to a commit */
+    public TreeMap<String, String> getAdd() {
+        return add;
+    }
+
+    /** Returns the map with the files to be removed from a commit */
+    public TreeMap<String, String> getRemove() {
+        return remove;
+    }
+
+    @Override
+    public void dump() {
+        System.out.printf("Staging Area%nAdd: %s%nRemove: %s%n", add, remove);
+    }
 }

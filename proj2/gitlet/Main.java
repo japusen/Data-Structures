@@ -26,13 +26,26 @@ public class Main {
                 }
                 Repository.initialize();
                 break;
-
             case "add":
                 validateNumArgs(args, 2);
-                validateRepo();
+                validateCWD();
                 Repository.add(args[1]);
                 break;
-
+            case "commit":
+                validateNumArgs(args, 3);
+                validateCWD();
+                Repository.commit(args[2]);
+                break;
+            case "rm":
+                validateNumArgs(args, 2);
+                validateCWD();
+                Repository.remove(args[1]);
+                break;
+            case "log":
+                validateNumArgs(args, 1);
+                validateCWD();
+                Repository.log();
+                break;
             default:
                 System.out.println("No command with that name exists.");
                 System.exit(0);
@@ -53,7 +66,7 @@ public class Main {
         }
     }
 
-    public static void validateRepo() {
+    public static void validateCWD() {
         if (!Repository.GITLET_DIR.exists()) {
             System.out.println("Not in an initialized Gitlet directory.");
             System.exit(0);

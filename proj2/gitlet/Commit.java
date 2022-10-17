@@ -1,7 +1,6 @@
 package gitlet;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.TreeMap;
@@ -12,7 +11,7 @@ import java.util.TreeMap;
  *
  *  @author Julius Apusen
  */
-public class Commit implements Serializable {
+public class Commit implements Serializable, Dumpable {
     /**
      * TODO: add instance variables here.
      *
@@ -22,51 +21,31 @@ public class Commit implements Serializable {
      */
 
 
-
     /** The message of this Commit. */
     private String message;
 
     /** The previous commit */
-    private String parent;
+    private String parentID;
 
     /** The date and time of the commit */
     private Date time;
 
     /** The names of the files and the blobIDs : File name -> blobID */
-    private TreeMap<String, String> nameBlopsMap;
+    private TreeMap<String, String> commitFiles;
 
-    public Commit(String message, String parent, Date time, TreeMap<String, String> nameBlopsMap) {
+    public Commit(String message, String parent, Date time, TreeMap<String, String> commitFiles) {
         this.message = message;
-        this.parent = parent;
+        this.parentID = parent;
         this.time = time;
-        this.nameBlopsMap = nameBlopsMap;
-    }
-
-    /**
-     * Reads in and deserializes a Commit from a file with given commitID in COMMIT_DIR.
-     *
-     * @param commitID Name of commit to load
-     * @return Commit read from file
-     */
-    public static Commit fromFile(String commitID) {
-        File commitFile = Utils.join(Repository.COMMIT_DIR, commitID);
-        Commit commit = Utils.readObject(commitFile, Commit.class);
-        return commit;
+        this.commitFiles = commitFiles;
     }
 
     /**
      * Saves a Commit to a file for future use.
      */
-    public void saveCommitToDir() {
+    public void saveToDir() {
         String commitID = getCommitID();
         File commitFile = Utils.join(Repository.COMMIT_DIR, commitID);
-        if (!commitFile.exists()) {
-            try {
-                commitFile.createNewFile();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
         Utils.writeObject(commitFile, this);
     }
 
@@ -75,14 +54,41 @@ public class Commit implements Serializable {
         return Utils.sha1(Utils.serialize(this));
     }
 
-    /** Returns true if the Commit has the file fileName */
-    public boolean containsFile(String fileName) {
-        return nameBlopsMap.containsKey(fileName);
+    /** Returns the ID of the parent commit */
+    public String getParentID() {
+        return parentID;
     }
 
-    /** Returns the blobID for the associated fileName */
-    public String getBlobID(String fileName) {
-        return nameBlopsMap.get(fileName);
+    /** Returns the map of commit files */
+    public TreeMap<String, String> getCommitFiles() {
+        return commitFiles;
     }
+
+    /** Returns true if the Commit is tracking the file fileName */
+    public boolean containsFile(String fileName) {
+        return commitFiles.containsKey(fileName);
+    }
+
+    /** Returns the blobID for the associated fileName or Null if it does not exist */
+    public String getBlobID(String fileName) {
+        return commitFiles.get(fileName);
+    }
+
+    /** Returns true if the commit is the origin commit */
+    public boolean isOrigin() {
+        return getCommitID() == Repository.originCommitID;
+    }
+
+    @Override
+    public String toString() {
+        return "===\ncommit " + getCommitID() + "\nDate: " + time.toString() + "\n" + message + "\n";
+    }
+
+    @Override
+    public void dump() {
+        System.out.printf("Commit%nID: %s%nParent: %s%nDate: %s%nMessage: %s%nFiles: %s%n",
+                getCommitID(), parentID, time.toString(), message, commitFiles);
+    }
+
 
 }
