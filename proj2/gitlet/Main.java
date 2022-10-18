@@ -66,11 +66,11 @@ public class Main {
                     String branchName = args[1];
                     Repository.checkout(branchName);
                     break;
-                } else if (args.length == 3) {
+                } else if (args.length == 3 && args[1].equals("--")) {
                     String fileName = args[2];
                     Repository.checkout("head", fileName);
                     break;
-                } else if (args.length == 4) {
+                } else if (args.length == 4 && args[2].equals("--")) {
                     String commitID = args[1];
                     String fileName = args[3];
                     Repository.checkout(commitID, fileName);

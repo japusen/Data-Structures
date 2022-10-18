@@ -399,13 +399,14 @@ public class Repository {
 
         // Change head to the new branch and get the new commit id
         branches.changeHEAD(branch);
-        String newCommitID = branches.getHEADCommitID();
+        branches.saveToFile();
 
         // Overwrite
+        String newCommitID = branches.getHEADCommitID();
         overwriteCWD(prevCommitID, newCommitID);
     }
 
-    /**  */
+    /** Reverts CWD to a specific commit given that the commit exists */
     public static void reset(String commitID) {
         File commitFile = Utils.join(Repository.COMMIT_DIR, commitID);
         // The commit does not exist
@@ -418,7 +419,12 @@ public class Repository {
         Branch branches = loadBranchesFromFile();
         String prevCommitID = branches.getHEADCommitID();
 
+        // Update CWD
         overwriteCWD(prevCommitID, commitID);
+
+        // Update head to commitID
+        branches.updateBranch(commitID);
+        branches.saveToFile();
     }
 
     /** Overwrites the CWD files to match the new commit */
@@ -458,6 +464,7 @@ public class Repository {
 
         // Clear the staging area
         stagingArea.clear();
+        stagingArea.saveToFile();
     }
 
     /** Returns a mapping of the current directory files and the hash of their contents */
