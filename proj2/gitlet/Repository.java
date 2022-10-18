@@ -333,6 +333,25 @@ public class Repository {
         branches.saveToFile();
     }
 
+    /** Removes a branch */
+    public static void removeBranch(String branch) {
+        // Load the branches
+        Branch branches = loadBranchesFromFile();
+
+        // Remove the branch if it exists
+        if (!branches.containsBranch(branch)) {
+            System.out.println("A branch with that name does not exist.");
+            System.exit(0);
+        } else if (branches.getHEAD().equals(branch)) {
+            System.out.println("Cannot remove the current branch.");
+            System.exit(0);
+        } else {
+            // Remove and save
+            branches.remove(branch);
+            branches.saveToFile();
+        }
+    }
+
     /** Checkout a single file from the commit id into the cwd */
     public static void checkout(String commitID, String fileName) {
         // Checkout on the head
@@ -369,41 +388,66 @@ public class Repository {
         }
 
         // Branch is the current branch
-        if (branches.getHEADCommitID().equals(branch)) {
+        if (branches.getHEAD().equals(branch)) {
             System.out.println("No need to checkout the current branch.");
             System.exit(0);
         }
 
+        // Save the commitID of the current head
+        String prevCommitID = branches.getHEADCommitID();
+
+        // Change head to the new branch and get the new commit id
+        branches.changeHEAD(branch);
+        String newCommitID = branches.getHEADCommitID();
+
+        // Overwrite
+        overwriteCWD(prevCommitID, newCommitID);
+    }
+
+    /**  */
+    public static void reset(String commitID) {
+        File commitFile = Utils.join(Repository.COMMIT_DIR, commitID);
+        // The commit does not exist
+        if (!commitFile.exists()) {
+            System.out.println("No commit with that id exists.");
+            System.exit(0);
+        }
+
+        // Load Staging Area and current Commit
+        Branch branches = loadBranchesFromFile();
+        String prevCommitID = branches.getHEADCommitID();
+
+        overwriteCWD(prevCommitID, commitID);
+    }
+
+    public static void overwriteCWD(String prevCommitID, String newCommitID) {
         // Load Staging Area and current Commit
         Staging stagingArea = loadStagingAreaFromFile();
-        Commit currentCommit = loadCommitFromFile(branches.getHEADCommitID());
+        Commit prevCommit = loadCommitFromFile(prevCommitID);
 
         // There is an untracked file in the cwd
         Set<String> cwdFiles = getCwdFiles().keySet();
         for (String file : cwdFiles) {
-            if (!stagingArea.hasAdded(file) && !currentCommit.isTracking(file)) {
+            if (!stagingArea.hasAdded(file) && !prevCommit.isTracking(file)) {
                 System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
                 System.exit(0);
             }
         }
 
         // Current branch commit files
-        Set<String> currentCommitFiles = currentCommit.getCommitFiles().keySet();
-
-        // Change head to the new branch
-        branches.changeHEAD(branch);
+        Set<String> prevCommitFiles = prevCommit.getCommitFiles().keySet();
 
         // Get the checkout branch commit files
-        Commit checkoutCommit = loadCommitFromFile(branches.getHEADCommitID());
+        Commit checkoutCommit = loadCommitFromFile(newCommitID);
         Set<String> checkoutCommitFiles = checkoutCommit.getCommitFiles().keySet();
 
-        // Overwrite files in the new branch to the CWD
+        // Overwrite files of the new branch to the CWD
         for (String file: checkoutCommitFiles) {
             writeFileToCWD(checkoutCommit, file);
         }
 
         // Delete files in the CWD that were in the previous branch, but not in the checkout branch
-        for (String file : currentCommitFiles) {
+        for (String file : prevCommitFiles) {
             if (!checkoutCommit.isTracking(file)) {
                 Utils.restrictedDelete(Utils.join(CWD,file));
             }
@@ -489,4 +533,5 @@ public class Repository {
         File copy = Utils.join(CWD, fileName);
         Utils.writeContents(copy, contents);
     }
+
 }

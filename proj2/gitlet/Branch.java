@@ -48,6 +48,11 @@ public class Branch implements Serializable, Dumpable {
         branchMap.put(branch, commitID);
     }
 
+    /** Removes a branch from the branches map */
+    public void remove(String branch) {
+        branchMap.remove(branch);
+    }
+
     /** Returns true if branch already exists in branches */
     public boolean containsBranch(String branchName) {
         return branchMap.containsKey(branchName);
@@ -56,6 +61,11 @@ public class Branch implements Serializable, Dumpable {
     /** Returns the commit that HEAD points to */
     public String getHEADCommitID() {
         return branchMap.get(head);
+    }
+
+    /** Returns the name of the branch that head is pointing to */
+    public String getHEAD() {
+        return head;
     }
 
     /** Returns the commit that branch points to if it exists. Returns null otherwise */
@@ -90,4 +100,5 @@ public class Branch implements Serializable, Dumpable {
     public void dump() {
         System.out.printf("Current Branch: %s%nAll Branches: %s%n", head, branchMap);
     }
+
 }

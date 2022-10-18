@@ -83,6 +83,14 @@ public class Main {
                 validateNumArgs(args, 2);
                 Repository.branch(args[1]);
                 break;
+            case "rm-branch":
+                validateCWD();
+                validateNumArgs(args, 2);
+                Repository.removeBranch(args[1]);
+            case "reset":
+                validateCWD();
+                validateNumArgs(args, 2);
+                Repository.reset(args[1]);
             default:
                 System.out.println("No command with that name exists.");
                 System.exit(0);
