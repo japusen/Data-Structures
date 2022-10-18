@@ -355,6 +355,12 @@ public class Repository {
             commitID = loadBranchesFromFile().getHEADCommitID();
         }
 
+        // Shortened ID
+        int idLength = commitID.length();
+        if (idLength < 40) {
+            commitID = findFullCommitID(commitID, idLength);
+        }
+
         File commitFile = Utils.join(Repository.COMMIT_DIR, commitID);
         // The commit does not exist
         if (!commitFile.exists()) {
@@ -403,6 +409,12 @@ public class Repository {
 
     /** Reverts CWD to a specific commit given that the commit exists */
     public static void reset(String commitID) {
+        // Shortened ID
+        int idLength = commitID.length();
+        if (idLength < 40) {
+            commitID = findFullCommitID(commitID, idLength);
+        }
+
         File commitFile = Utils.join(Repository.COMMIT_DIR, commitID);
         // The commit does not exist
         if (!commitFile.exists()) {
@@ -523,6 +535,18 @@ public class Repository {
     /** Returns the staging area from the staging file */
     public static Staging loadStagingAreaFromFile() {
         return Utils.readObject(STAGING_FILE, Staging.class);
+    }
+
+    /** Find the full commitID of a shortened commitID */
+    public static String findFullCommitID(String commitID, int idLength) {
+        List<String> commitIDs = Utils.plainFilenamesIn(COMMIT_DIR);
+        for (String id : commitIDs) {
+            if (commitID.equals(id.substring(0, idLength))) {
+                return id;
+            }
+        }
+        // Not found
+        return "";
     }
 
     /** Writes a file from a Commit to the CWD */
