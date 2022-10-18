@@ -394,7 +394,7 @@ public class Repository {
             System.exit(0);
         }
 
-        // Save the commitID of the current head
+        // Get the commitID of the current head
         String prevCommitID = branches.getHEADCommitID();
 
         // Change head to the new branch and get the new commit id
@@ -429,26 +429,24 @@ public class Repository {
 
     /** Overwrites the CWD files to match the new commit */
     public static void overwriteCWD(String prevCommitID, String newCommitID) {
-        // Load Staging Area and current Commit
+        // Load Staging Area and previous Commit
         Staging stagingArea = loadStagingAreaFromFile();
         Commit prevCommit = loadCommitFromFile(prevCommitID);
-
-        // There is an untracked file in the cwd
-        Set<String> cwdFiles = getCwdFiles().keySet();
-        for (String file : cwdFiles) {
-            if (!stagingArea.hasAdded(file) && !prevCommit.isTracking(file)) {
-                System.out.println("There is an untracked file in the way; " +
-                        "delete it, or add and commit it first.");
-                System.exit(0);
-            }
-        }
-
-        // Current branch commit files
         Set<String> prevCommitFiles = prevCommit.getCommitFiles().keySet();
 
         // Get the checkout branch commit files
         Commit checkoutCommit = loadCommitFromFile(newCommitID);
         Set<String> checkoutCommitFiles = checkoutCommit.getCommitFiles().keySet();
+
+        // There is an untracked file in the cwd
+        Set<String> cwdFiles = getCwdFiles().keySet();
+        for (String file : cwdFiles) {
+            if (!prevCommit.isTracking(file) && checkoutCommit.isTracking(file)) {
+                System.out.println("There is an untracked file in the way;"
+                        + " delete it, or add and commit it first.");
+                System.exit(0);
+            }
+        }
 
         // Overwrite files of the new branch to the CWD
         for (String file: checkoutCommitFiles) {
