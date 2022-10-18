@@ -166,11 +166,6 @@ public class Repository {
 
     /** If the file is being tracked, stage for removal and delete file from the CWD */
     public static void remove(String fileName) {
-        // Make sure the file exists
-        File removedFile = Utils.join(Repository.CWD, fileName);
-        validateFile(removedFile);
-        String removedFileBlobID = calculateBlobID(removedFile);
-
         // Load the Staging Area and Branches
         Staging stagingArea = loadStagingAreaFromFile();
         Branch branches = loadBranchesFromFile();
@@ -183,6 +178,7 @@ public class Repository {
         if (!stagingArea.hasAdded(fileName) && !headCommit.isTracking(fileName)) {
             System.out.println("No reason to remove the file.");
         } else {
+            String removedFileBlobID = headCommit.getFileBlobID(fileName);
             // Unstage the file if it is currently staged for addition
             stagingArea.cancelAdd(fileName);
 
@@ -190,7 +186,7 @@ public class Repository {
             // remove the file from the working directory if the user has not already done so
             if (headCommit.isTracking(fileName)) {
                 stagingArea.removeFile(fileName, removedFileBlobID);
-                Utils.restrictedDelete(removedFile);
+                Utils.restrictedDelete(fileName);
             }
 
             // Save changes to staging area
@@ -266,7 +262,6 @@ public class Repository {
 
         // Identify modified/deleted files in CWD that are not staged for commit
         TreeSet<String> modifiedFiles = new TreeSet<>();
-        TreeSet<String> untrackedFiles = new TreeSet<>();
 
         // File is being tracked and either:
         // - in the cwd, but not staged for addition and does not have the same contents
