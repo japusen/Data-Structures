@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.TreeMap;
 
+
 /** Represents a gitlet repository staging area
  *  Mantains the staging area of the repo
  *

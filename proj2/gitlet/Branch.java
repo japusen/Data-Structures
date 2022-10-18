@@ -1,10 +1,9 @@
 package gitlet;
 
-import edu.princeton.cs.algs4.StdOut;
-
 import java.io.File;
 import java.io.Serializable;
 import java.util.TreeMap;
+
 
 /** Represents the gitlet repository branches
  *  Maintains the state of the branches and the HEAD pointer in the repository

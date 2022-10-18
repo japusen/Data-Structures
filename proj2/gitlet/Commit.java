@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.Serializable;
 import java.util.TreeMap;
 
+
 /** Represents a gitlet commit object.
  *  Create commits in the commit directory and relays information about individual commits
  *
@@ -82,7 +83,8 @@ public class Commit implements Serializable, Dumpable {
 
     @Override
     public String toString() {
-        return "===\ncommit " + getCommitID() + "\nDate: " + time.toString() + "\n" + message + "\n";
+        return "===\ncommit " + getCommitID() + "\nDate: "
+                + time.toString() + "\n" + message + "\n";
     }
 
     @Override

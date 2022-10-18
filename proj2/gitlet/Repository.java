@@ -32,7 +32,7 @@ public class Repository {
     public static final File GITLET_DIR = Utils.join(CWD, ".gitlet");
     static final File COMMIT_DIR = Utils.join(Repository.GITLET_DIR, "commits");
     static final File BLOB_DIR = Utils.join(Repository.GITLET_DIR, "blobs");
-    static final DateFormat dateFormat = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z");
+    static final DateFormat DATE_FORMAT = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z");
     static String originCommitID;
 
     /**
@@ -50,7 +50,7 @@ public class Repository {
 
             // Create the origin Commit obj and save it to COMMIT_DIR
             Commit originCommit = new Commit("initial commit", null,
-                    dateFormat.format(new Date(0)).toString(), new TreeMap<>());
+                    DATE_FORMAT.format(new Date(0)), new TreeMap<>());
             originCommitID = originCommit.getCommitID();
             originCommit.saveToDir();
 
@@ -73,7 +73,7 @@ public class Repository {
         // Make sure the file exists
         File addedFile = Utils.join(Repository.CWD, fileName);
         validateFile(addedFile);
-        String addedFileBlobID= calculateBlobID(addedFile);
+        String addedFileBlobID = calculateBlobID(addedFile);
 
         // Get the Staging Area and Branches
         Staging stagingArea = loadStagingAreaFromFile();
@@ -148,7 +148,8 @@ public class Repository {
         }
 
         // Create the New Commit
-        Commit newCommit = new Commit(message, prevCommitID, dateFormat.format(new Date()).toString(), commitFiles);
+        Commit newCommit = new Commit(message, prevCommitID,
+                DATE_FORMAT.format(new Date()), commitFiles);
         String newCommitID = newCommit.getCommitID();
 
         // Update the current branch to the new commitID
@@ -168,7 +169,7 @@ public class Repository {
         // Make sure the file exists
         File removedFile = Utils.join(Repository.CWD, fileName);
         validateFile(removedFile);
-        String removedFileBlobID= calculateBlobID(removedFile);
+        String removedFileBlobID = calculateBlobID(removedFile);
 
         // Load the Staging Area and Branches
         Staging stagingArea = loadStagingAreaFromFile();
@@ -296,7 +297,7 @@ public class Repository {
                     modifiedFiles.add(fileName + " (modified)");
                 }
             } else {
-               modifiedFiles.add(fileName + " (deleted)");
+                modifiedFiles.add(fileName + " (deleted)");
             }
             cwdFiles.remove(fileName);
         }
@@ -355,7 +356,7 @@ public class Repository {
     /** Checkout a single file from the commit id into the cwd */
     public static void checkout(String commitID, String fileName) {
         // Checkout on the head
-        if (commitID == "head") {
+        if (commitID.equals("head")) {
             commitID = loadBranchesFromFile().getHEADCommitID();
         }
 
@@ -420,6 +421,7 @@ public class Repository {
         overwriteCWD(prevCommitID, commitID);
     }
 
+    /** Overwrites the CWD files to match the new commit */
     public static void overwriteCWD(String prevCommitID, String newCommitID) {
         // Load Staging Area and current Commit
         Staging stagingArea = loadStagingAreaFromFile();
@@ -429,7 +431,8 @@ public class Repository {
         Set<String> cwdFiles = getCwdFiles().keySet();
         for (String file : cwdFiles) {
             if (!stagingArea.hasAdded(file) && !prevCommit.isTracking(file)) {
-                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                System.out.println("There is an untracked file in the way; " +
+                        "delete it, or add and commit it first.");
                 System.exit(0);
             }
         }
@@ -449,7 +452,7 @@ public class Repository {
         // Delete files in the CWD that were in the previous branch, but not in the checkout branch
         for (String file : prevCommitFiles) {
             if (!checkoutCommit.isTracking(file)) {
-                Utils.restrictedDelete(Utils.join(CWD,file));
+                Utils.restrictedDelete(Utils.join(CWD, file));
             }
         }
 
@@ -461,12 +464,12 @@ public class Repository {
     public static TreeMap<String, String> getCwdFiles() {
         TreeMap<String, String> fileMap = new TreeMap<>();
 
-        List<String> file_names = Utils.plainFilenamesIn(CWD);
-        if (file_names == null) {
+        List<String> fileNames = Utils.plainFilenamesIn(CWD);
+        if (fileNames == null) {
             return fileMap;
         }
 
-        for (String blobID : file_names) {
+        for (String blobID : fileNames) {
             File currentBlob = Utils.join(CWD, blobID);
             byte[] contents = Utils.readContents(currentBlob);
             String hash = Utils.sha1(contents);
