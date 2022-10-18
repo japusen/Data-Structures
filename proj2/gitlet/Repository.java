@@ -4,9 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.TreeMap;
+import java.util.*;
 
 import static gitlet.Branch.BRANCH_FILE;
 import static gitlet.Staging.STAGING_FILE;
@@ -92,19 +90,19 @@ public class Repository {
         //      If they are the same, remove it from staging area (file was reverted)
         //      If they are different, overwrite the addition
         // Otherwise, the file wasn't already in the commit, so add to staging area.
-        if (headCommit.containsFile(fileName)) {
+        if (headCommit.isTracking(fileName)) {
             String headBlobID = headCommit.getBlobID(fileName);
 
             if (sameBlobID(addedFileBlobID, headBlobID)) {
                 stagingArea.cancelAdd(fileName);
             } else {
                 // Add and save blob to dir
-                stagingArea.stageAdd(fileName, addedFileBlobID);
+                stagingArea.addFile(fileName, addedFileBlobID);
                 saveBlobtoDir(addedFileBlobID, Utils.readContents(addedFile));
             }
         } else {
             // Add and save blob to dir
-            stagingArea.stageAdd(fileName, addedFileBlobID);
+            stagingArea.addFile(fileName, addedFileBlobID);
             saveBlobtoDir(addedFileBlobID, Utils.readContents(addedFile));
         }
 
@@ -122,7 +120,7 @@ public class Repository {
 
         // Load the Staging Area
         Staging stagingArea = loadStagingAreaFromFile();
-        TreeMap<String, String> added = stagingArea.getAdd();
+        TreeMap<String, String> added = stagingArea.getAddedFiles();
         TreeMap<String, String> removed = stagingArea.getRemove();
 
         // If no files have been staged, abort
@@ -153,10 +151,8 @@ public class Repository {
         Commit newCommit = new Commit(message, prevCommitID, dateFormat.format(new Date()).toString(), commitFiles);
         String newCommitID = newCommit.getCommitID();
 
-        // Update the head and current branch to the new commitID
-        branches.updateHEAD(newCommitID);
+        // Update the current branch to the new commitID
         branches.updateBranch(newCommitID);
-
 
         // Clear the staging area
         stagingArea.clear();
@@ -174,16 +170,16 @@ public class Repository {
         validateFile(removedFile);
         String removedFileBlobID= calculateBlobID(removedFile);
 
-        // Get the Staging Area and Branches
+        // Load the Staging Area and Branches
         Staging stagingArea = loadStagingAreaFromFile();
         Branch branches = loadBranchesFromFile();
 
-        // Get the commit from the HEAD
+        // Load the commit from the HEAD
         Commit headCommit = loadCommitFromFile(branches.getHEADCommitID());
 
         // If the file is neither staged nor tracked by the head commit,
         // print the error message
-        if (!stagingArea.containsFile(fileName) && !headCommit.containsFile(fileName)) {
+        if (!stagingArea.hasAdded(fileName) && !headCommit.isTracking(fileName)) {
             System.out.println("No reason to remove the file.");
         } else {
             // Unstage the file if it is currently staged for addition
@@ -191,8 +187,8 @@ public class Repository {
 
             // If the file is tracked in the current commit, stage it for removal and
             // remove the file from the working directory if the user has not already done so
-            if (headCommit.containsFile(fileName)) {
-                stagingArea.stageRemove(fileName, removedFileBlobID);
+            if (headCommit.isTracking(fileName)) {
+                stagingArea.removeFile(fileName, removedFileBlobID);
                 Utils.restrictedDelete(removedFile);
             }
 
@@ -248,7 +244,76 @@ public class Repository {
 
     /** Prints out the status of the current working directory */
     public static void status() {
-        // TODO
+        // Load the Staging Area
+        Staging stagingArea = loadStagingAreaFromFile();
+        TreeMap<String, String> addedFiles = stagingArea.getAddedFiles();
+
+        // Load the branches
+        Branch branches = loadBranchesFromFile();
+
+        // Load the commit from the HEAD
+        String headCommitID = branches.getHEADCommitID();
+        Commit headCommit = loadCommitFromFile(headCommitID);
+        TreeMap<String, String> commitFiles = headCommit.getCommitFiles();
+
+        // Print out Branches and Staging Area
+        branches.printBranches(headCommitID);
+        stagingArea.printFiles();
+
+        // Load the files in the CWD
+        TreeMap<String, String> cwdFiles = getCwdFiles();
+
+        // Identify modified/deleted files in CWD that are not staged for commit
+        TreeSet<String> modifiedFiles = new TreeSet<>();
+        TreeSet<String> untrackedFiles = new TreeSet<>();
+
+        // File is being tracked and either:
+        // - in the cwd, but not staged for addition and does not have the same contents
+        // - not in the cwd, but not staged for removal
+        for (String fileName : commitFiles.keySet()) {
+            String commitBlobID = commitFiles.get(fileName);
+            if (cwdFiles.containsKey(fileName)) {
+                String cwdBlobID = cwdFiles.get(fileName);
+                if (!sameBlobID(commitBlobID, cwdBlobID) && !stagingArea.hasAdded(fileName)) {
+                    modifiedFiles.add(fileName + " (modified)");
+                }
+            } else {
+                if (!stagingArea.hasRemoved(fileName)) {
+                    modifiedFiles.add(fileName + " (deleted)");
+                }
+            }
+            cwdFiles.remove(fileName);
+        }
+
+        // File is staged for addition, but either:
+        // - in the cwd, but the file contents are changed
+        // - not in the cwd
+        for (String fileName : stagingArea.getAddedFiles().keySet()) {
+            String stagingBlobID = stagingArea.getAddedFiles().get(fileName);
+            if (cwdFiles.containsKey(fileName)) {
+                String cwdBlobID = cwdFiles.get(fileName);
+                if (!sameBlobID(stagingBlobID, cwdBlobID)) {
+                    modifiedFiles.add(fileName + " (modified)");
+                }
+            } else {
+               modifiedFiles.add(fileName + " (deleted)");
+            }
+            cwdFiles.remove(fileName);
+        }
+
+        // Print modified files
+        System.out.println("=== Modifications Not Staged For Commit ===");
+        for (String fileName : modifiedFiles) {
+            System.out.println(fileName);
+        }
+        System.out.println();
+
+        // Anything left in cwdFiles is untracked
+        System.out.println("=== Untracked Files ===");
+        for (String fileName : cwdFiles.keySet()) {
+            System.out.println(fileName);
+        }
+        System.out.println();
     }
 
     /** Creates a new branch at the HEAD */
@@ -268,8 +333,88 @@ public class Repository {
         branches.saveToFile();
     }
 
+    /** Checkout a single file from the commit id into the cwd */
+    public static void checkout(String commitID, String fileName) {
+        // Checkout on the head
+        if (commitID == "head") {
+            commitID = loadBranchesFromFile().getHEADCommitID();
+        }
+
+        File commitFile = Utils.join(Repository.COMMIT_DIR, commitID);
+        // The commit does not exist
+        if (!commitFile.exists()) {
+            System.out.println("No commit with that id exists.");
+            System.exit(0);
+        }
+
+        // The commit does not track the file
+        Commit checkoutCommit = loadCommitFromFile(commitID);
+        if (!checkoutCommit.isTracking(fileName)) {
+            System.out.println("File does not exist in that commit.");
+            System.exit(0);
+        }
+
+        // Write the file to the CWD
+        writeFileToCWD(checkoutCommit, fileName);
+    }
+
+    /** Checkout all the files at the HEAD of a branch into the CWD */
+    public static void checkout(String branch) {
+        Branch branches = loadBranchesFromFile();
+
+        // Branch does not exist
+        if (!branches.containsBranch(branch)) {
+            System.out.println("No such branch exists.");
+            System.exit(0);
+        }
+
+        // Branch is the current branch
+        if (branches.getHEADCommitID().equals(branch)) {
+            System.out.println("No need to checkout the current branch.");
+            System.exit(0);
+        }
+
+        // Load Staging Area and current Commit
+        Staging stagingArea = loadStagingAreaFromFile();
+        Commit currentCommit = loadCommitFromFile(branches.getHEADCommitID());
+
+        // There is an untracked file in the cwd
+        Set<String> cwdFiles = getCwdFiles().keySet();
+        for (String file : cwdFiles) {
+            if (!stagingArea.hasAdded(file) && !currentCommit.isTracking(file)) {
+                System.out.println("There is an untracked file in the way; delete it, or add and commit it first.");
+                System.exit(0);
+            }
+        }
+
+        // Current branch commit files
+        Set<String> currentCommitFiles = currentCommit.getCommitFiles().keySet();
+
+        // Change head to the new branch
+        branches.changeHEAD(branch);
+
+        // Get the checkout branch commit files
+        Commit checkoutCommit = loadCommitFromFile(branches.getHEADCommitID());
+        Set<String> checkoutCommitFiles = checkoutCommit.getCommitFiles().keySet();
+
+        // Overwrite files in the new branch to the CWD
+        for (String file: checkoutCommitFiles) {
+            writeFileToCWD(checkoutCommit, file);
+        }
+
+        // Delete files in the CWD that were in the previous branch, but not in the checkout branch
+        for (String file : currentCommitFiles) {
+            if (!checkoutCommit.isTracking(file)) {
+                Utils.restrictedDelete(Utils.join(CWD,file));
+            }
+        }
+
+        // Clear the staging area
+        stagingArea.clear();
+    }
+
     /** Returns a mapping of the current directory files and the hash of their contents */
-    public TreeMap<String, String> getCwdFiles() {
+    public static TreeMap<String, String> getCwdFiles() {
         TreeMap<String, String> fileMap = new TreeMap<>();
 
         List<String> file_names = Utils.plainFilenamesIn(CWD);
@@ -320,7 +465,6 @@ public class Repository {
 
     /**
      * Reads in and deserializes a Commit from a file with given commitID in COMMIT_DIR.
-     *
      * @param commitID Name of commit to load
      * @return Commit read from file
      */
@@ -334,4 +478,15 @@ public class Repository {
         return Utils.readObject(STAGING_FILE, Staging.class);
     }
 
+    /** Writes a file from a Commit to the CWD */
+    public static void writeFileToCWD(Commit commit, String fileName) {
+        // Get the file contents
+        String fileBlobID = commit.getFileBlobID(fileName);
+        File blobFile = Utils.join(Repository.BLOB_DIR, fileBlobID);
+        byte[] contents = Utils.readContents(blobFile);
+
+        // Write the file to the CWD
+        File copy = Utils.join(CWD, fileName);
+        Utils.writeContents(copy, contents);
+    }
 }

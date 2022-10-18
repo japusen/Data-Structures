@@ -18,12 +18,12 @@ public class Staging implements Serializable, Dumpable {
      */
 
     static final File STAGING_FILE = Utils.join(Repository.GITLET_DIR, "staging");
-    private TreeMap<String, String> add;
-    private TreeMap<String, String> remove;
+    private TreeMap<String, String> addedFiles;
+    private TreeMap<String, String> removedFiles;
 
     Staging() {
-        add = new TreeMap<>();
-        remove = new TreeMap<>();
+        addedFiles = new TreeMap<>();
+        removedFiles = new TreeMap<>();
     }
 
     /** Saves the state of the staging area to the file */
@@ -31,49 +31,67 @@ public class Staging implements Serializable, Dumpable {
         Utils.writeObject(STAGING_FILE, this);
     }
 
-    /** Returns whether the file fileName is in the staging area */
-    public boolean containsFile(String fileName) {
-        return add.containsKey(fileName);
+    /** Returns whether the file fileName is already staged for addition */
+    public boolean hasAdded(String fileName) {
+        return addedFiles.containsKey(fileName);
+    }
+
+    /** Returns whether the file fileName is already staged for removal */
+    public boolean hasRemoved(String fileName) {
+        return removedFiles.containsKey(fileName);
     }
 
     /** Stages the file for adding */
-    public void stageAdd(String fileName, String blobID) {
-        add.put(fileName, blobID);
+    public void addFile(String fileName, String blobID) {
+        addedFiles.put(fileName, blobID);
     }
 
     /** Cancels the add for the file */
     public void cancelAdd(String fileName) {
-        add.remove(fileName);
+        addedFiles.remove(fileName);
     }
 
     /** Stages the file for removal */
-    public void stageRemove(String fileName, String blobID) {
-        remove.put(fileName, blobID);
+    public void removeFile(String fileName, String blobID) {
+        removedFiles.put(fileName, blobID);
     }
 
     /** Cancels the removal of a file */
     public void cancelRemove(String fileName) {
-        remove.remove(fileName);
+        removedFiles.remove(fileName);
     }
 
     /** Empties the staging area */
     public void clear() {
-        add = new TreeMap<>();
-        remove = new TreeMap<>();
+        addedFiles = new TreeMap<>();
+        removedFiles = new TreeMap<>();
     }
 
     /** Returns the map with the files to be added to a commit */
-    public TreeMap<String, String> getAdd() {
-        return add;
+    public TreeMap<String, String> getAddedFiles() {
+        return addedFiles;
     }
 
     /** Returns the map with the files to be removed from a commit */
     public TreeMap<String, String> getRemove() {
-        return remove;
+        return removedFiles;
+    }
+
+    /** Print out the files staged for addition and removal for the status command */
+    public void printFiles() {
+        System.out.println("=== Staged Files ===");
+        for (String fileName : addedFiles.keySet()) {
+            System.out.println(fileName);
+        }
+        System.out.println("\n=== Removed Files ===");
+        for (String fileName : removedFiles.keySet()) {
+            System.out.println(fileName);
+        }
+        System.out.println();
     }
 
     @Override
     public void dump() {
-        System.out.printf("Staging Area%nAdd: %s%nRemove: %s%n", add, remove);
+        System.out.printf("Staging Area%nAdd: %s%nRemove: %s%n", addedFiles, removedFiles);
     }
 }

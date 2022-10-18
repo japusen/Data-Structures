@@ -25,51 +25,54 @@ public class Main {
                 Repository.initialize();
                 break;
             case "add":
-                validateNumArgs(args, 2);
                 validateCWD();
+                validateNumArgs(args, 2);
                 Repository.add(args[1]);
                 break;
             case "commit":
-                validateNumArgs(args, 2);
                 validateCWD();
+                validateNumArgs(args, 2);
                 Repository.commit(args[1]);
                 break;
             case "rm":
-                validateNumArgs(args, 2);
                 validateCWD();
+                validateNumArgs(args, 2);
                 Repository.remove(args[1]);
                 break;
             case "log":
-                validateNumArgs(args, 1);
                 validateCWD();
+                validateNumArgs(args, 1);
                 Repository.log();
                 break;
             case "global-log":
-                validateNumArgs(args, 1);
                 validateCWD();
+                validateNumArgs(args, 1);
                 Repository.globalLog();
                 break;
             case "find":
-                validateNumArgs(args, 2);
                 validateCWD();
+                validateNumArgs(args, 2);
                 Repository.find(args[1]);
                 break;
             case "status":
-                validateNumArgs(args, 1);
                 validateCWD();
+                validateNumArgs(args, 1);
                 Repository.status();
                 break;
             case "checkout":
                 validateCWD();
                 if (args.length == 2) {
                     String branchName = args[1];
+                    Repository.checkout(branchName);
                     break;
                 } else if (args.length == 3) {
                     String fileName = args[2];
+                    Repository.checkout("head", fileName);
                     break;
                 } else if (args.length == 4) {
                     String commitID = args[1];
                     String fileName = args[3];
+                    Repository.checkout(commitID, fileName);
                     break;
                 } else {
                     System.out.println("Incorrect operands.");

@@ -60,8 +60,13 @@ public class Commit implements Serializable, Dumpable {
         return commitFiles;
     }
 
+    /** Returns the blobID for the file */
+    public String getFileBlobID(String fileName) {
+        return commitFiles.get(fileName);
+    }
+
     /** Returns true if the Commit is tracking the file fileName */
-    public boolean containsFile(String fileName) {
+    public boolean isTracking(String fileName) {
         return commitFiles.containsKey(fileName);
     }
 
