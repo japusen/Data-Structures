@@ -88,10 +88,12 @@ public class Main {
                 validateCWD();
                 validateNumArgs(args, 2);
                 Repository.removeBranch(args[1]);
+                break;
             case "reset":
                 validateCWD();
                 validateNumArgs(args, 2);
                 Repository.reset(args[1]);
+                break;
             default:
                 System.out.println("No command with that name exists.");
                 System.exit(0);
