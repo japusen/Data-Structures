@@ -67,13 +67,9 @@ public class Branch implements Serializable, Dumpable {
         return head;
     }
 
-    /** Returns the commit that branch points to if it exists. Returns null otherwise */
-    public Commit getBranchCommitID(String branchName) {
-        if (branchMap.containsKey(branchName)) {
-            String branchCommitID = branchMap.get(branchName);
-            return Repository.loadCommitFromFile(branchCommitID);
-        }
-        return null;
+    /** Returns the commit that branch points to */
+    public String getBranchCommitID(String branchName) {
+        return branchMap.get(branchName);
     }
 
     /** Saves the state of the branch to the file */

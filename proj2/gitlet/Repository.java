@@ -434,6 +434,84 @@ public class Repository {
         branches.saveToFile();
     }
 
+    /** Merges a branch onto the current branch */
+    public static void merge(String branch) {
+        // Load Branches and Staging Area
+        Branch branches = loadBranchesFromFile();
+        Staging stagingArea = loadStagingAreaFromFile();
+
+        // Load the headCommitID and the mergeCommitID
+        String headCommitID = branches.getHEADCommitID();
+        String mergeCommitID = branches.getBranchCommitID(branch);
+
+        // Verify branch exists
+        if (!branches.containsBranch(branch)) {
+            System.out.println("A branch with that name does not exist.");
+            System.exit(0);
+        }
+
+        // Cannot merge with itself
+        if (branches.getHEAD().equals(branch)) {
+            System.out.println("Cannot merge a branch with itself.");
+            System.exit(0);
+        }
+
+        // Staging Area is not empty
+        if (!stagingArea.isEmpty()) {
+            System.out.println("You have uncommitted changes.");
+            System.exit(0);
+        }
+
+        // Load the commits from the two branches
+        Commit headCommit = loadCommitFromFile(headCommitID);
+        Commit mergeCommit = loadCommitFromFile(mergeCommitID);
+
+        // There is an untracked file in the cwd
+        if (hasUntrackedFile(headCommit, mergeCommit)) {
+            System.out.println("There is an untracked file in the way;"
+                    + " delete it, or add and commit it first.");
+            System.exit(0);
+        }
+
+        // Find the splitCommitID and load it
+        // TODO
+        String splitCommitID = "";
+        Commit splitCommit = loadCommitFromFile(splitCommitID);
+
+        //  If the split point is the same commit as the given branch,
+        //  then we do nothing
+        if (splitCommitID.equals(mergeCommitID)) {
+            System.out.println("Given branch is an ancestor of the current branch.");
+            System.exit(0);
+        }
+
+        // If the split point is the current branch,
+        // then the effect is to check out the given branch
+        if (splitCommitID.equals(headCommitID)) {
+            checkout(branch);
+            System.out.println("Current branch fast-forwarded.");
+            System.exit(0);
+        }
+
+        // Merge Files
+        // TODO
+        boolean hasConflict = false;
+
+        // Create commit
+        // TODO
+        String message = "Merged " + branch + " into " + branches.getHEAD() + ".";
+
+
+        // There was a conflict
+        if (hasConflict) {
+            System.out.println("Encountered a merge conflict.");
+        }
+
+        // Save changes
+        branches.saveToFile();
+        stagingArea.saveToFile();
+    }
+
     /** Overwrites the CWD files to match the new commit */
     public static void overwriteCWD(String prevCommitID, String newCommitID) {
         // Load Staging Area and previous Commit
@@ -446,13 +524,10 @@ public class Repository {
         Set<String> checkoutCommitFiles = checkoutCommit.getCommitFiles().keySet();
 
         // There is an untracked file in the cwd
-        Set<String> cwdFiles = getCwdFiles().keySet();
-        for (String file : cwdFiles) {
-            if (!prevCommit.isTracking(file) && checkoutCommit.isTracking(file)) {
-                System.out.println("There is an untracked file in the way;"
-                        + " delete it, or add and commit it first.");
-                System.exit(0);
-            }
+        if (hasUntrackedFile(prevCommit, checkoutCommit)) {
+            System.out.println("There is an untracked file in the way;"
+                    + " delete it, or add and commit it first.");
+            System.exit(0);
         }
 
         // Overwrite files of the new branch to the CWD
@@ -547,6 +622,17 @@ public class Repository {
         }
         // Not found
         return "";
+    }
+
+    /** Returns true if there is an untracked file in the way of a reset/checkout/merge */
+    public static boolean hasUntrackedFile(Commit first, Commit second) {
+        Set<String> cwdFiles = getCwdFiles().keySet();
+        for (String file : cwdFiles) {
+            if (!first.isTracking(file) && second.isTracking(file)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Writes a file from a Commit to the CWD */

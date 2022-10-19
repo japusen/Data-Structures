@@ -68,6 +68,11 @@ public class Staging implements Serializable, Dumpable {
         removedFiles = new TreeMap<>();
     }
 
+    /** Returns true if the staging area (addition and removal) is empty */
+    public boolean isEmpty() {
+        return addedFiles.isEmpty() && removedFiles.isEmpty();
+    }
+
     /** Returns the map with the files to be added to a commit */
     public TreeMap<String, String> getAddedFiles() {
         return addedFiles;
