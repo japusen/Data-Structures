@@ -33,7 +33,7 @@ public class Repository {
     static final File COMMIT_DIR = Utils.join(Repository.GITLET_DIR, "commits");
     static final File BLOB_DIR = Utils.join(Repository.GITLET_DIR, "blobs");
     static final DateFormat DATE_FORMAT = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z");
-    static String originCommitID;
+
 
     /**
      * Does the required filesystem operations to allow for persistence.
@@ -51,7 +51,7 @@ public class Repository {
             // Create the origin Commit obj and save it to COMMIT_DIR
             Commit originCommit = new Commit("initial commit", null,
                     DATE_FORMAT.format(new Date(0)), new TreeMap<>());
-            originCommitID = originCommit.getCommitID();
+            String originCommitID = originCommit.getCommitID();
             originCommit.saveToDir();
 
             // Create the MASTER branch and HEAD pointer. Point them to the origin commit
@@ -647,28 +647,30 @@ public class Repository {
 
     /** Returns the commit that is the split point between two branches */
     public static Commit findBranchSplitPoint(Commit current, Commit branch) {
-        String currentParent = current.getParentID();
-        String branchParent = branch.getParentID();
-        String splitID = originCommitID;
+        Commit currentPtr = current;
+        Commit branchPtr = branch;
+        String splitID = "";
         Set<String> parents = new HashSet<>();
 
         boolean found = false;
         while (!found) {
-            if (!currentParent.equals(originCommitID)) {
-                if (!parents.contains(currentParent)) {
-                    parents.add(currentParent);
-                    currentParent = loadCommitFromFile(currentParent).getParentID();
+            if (currentPtr != null) {
+                String id = currentPtr.getParentID();
+                if (!parents.contains(id)) {
+                    parents.add(id);
+                    currentPtr = loadCommitFromFile(currentPtr.getParentID());
                 } else {
-                    splitID = currentParent;
+                    splitID = id;
                     found = true;
                 }
             }
-            if (!branchParent.equals(originCommitID)) {
-                if (!parents.contains(branchParent)) {
-                    parents.add(branchParent);
-                    branchParent = loadCommitFromFile(branchParent).getParentID();
+            if (branchPtr != null) {
+                String id = branchPtr.getParentID();
+                if (!parents.contains(id)) {
+                    parents.add(id);
+                    branchPtr = loadCommitFromFile(branchPtr.getParentID());
                 } else {
-                    splitID = branchParent;
+                    splitID = id;
                     found = true;
                 }
             }
