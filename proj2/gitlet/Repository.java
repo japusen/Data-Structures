@@ -473,21 +473,19 @@ public class Repository {
             System.exit(0);
         }
 
-        // Find the splitCommitID and load it
-        // TODO
-        String splitCommitID = "";
-        Commit splitCommit = loadCommitFromFile(splitCommitID);
+        // Find the splitCommit and load it
+        Commit splitCommit = findBranchSplitPoint(headCommit, mergeCommit);
 
         //  If the split point is the same commit as the given branch,
         //  then we do nothing
-        if (splitCommitID.equals(mergeCommitID)) {
+        if (splitCommit.equals(mergeCommit)) {
             System.out.println("Given branch is an ancestor of the current branch.");
             System.exit(0);
         }
 
         // If the split point is the current branch,
         // then the effect is to check out the given branch
-        if (splitCommitID.equals(headCommitID)) {
+        if (splitCommit.equals(headCommit)) {
             checkout(branch);
             System.out.println("Current branch fast-forwarded.");
             System.exit(0);
@@ -645,6 +643,38 @@ public class Repository {
         // Write the file to the CWD
         File copy = Utils.join(CWD, fileName);
         Utils.writeContents(copy, contents);
+    }
+
+    /** Returns the commit that is the split point between two branches */
+    public static Commit findBranchSplitPoint(Commit current, Commit branch) {
+        String currentParent = current.getParentID();
+        String branchParent = branch.getParentID();
+        String splitID = originCommitID;
+        Set<String> parents = new HashSet<>();
+
+        boolean found = false;
+        while (!found) {
+            if (!currentParent.equals(originCommitID)) {
+                if (!parents.contains(currentParent)) {
+                    parents.add(currentParent);
+                    currentParent = loadCommitFromFile(currentParent).getParentID();
+                } else {
+                    splitID = currentParent;
+                    found = true;
+                }
+            }
+            if (!branchParent.equals(originCommitID)) {
+                if (!parents.contains(branchParent)) {
+                    parents.add(branchParent);
+                    branchParent = loadCommitFromFile(branchParent).getParentID();
+                } else {
+                    splitID = branchParent;
+                    found = true;
+                }
+            }
+        }
+
+        return loadCommitFromFile(splitID);
     }
 
 }
