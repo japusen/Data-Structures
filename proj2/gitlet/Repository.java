@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
 import static gitlet.Branch.BRANCH_FILE;
 import static gitlet.Staging.STAGING_FILE;
 
@@ -648,39 +647,38 @@ public class Repository {
 
     /** Returns the commit ID that is the split point between two branches */
     public static String findBranchSplitPoint(Commit current, Commit branch) {
-        String currentCommitID = current.getCommitID();
-        String branchCommitID = branch.getCommitID();
+        HashSet<String> parents = current.getAllParents();
         String splitID = "";
-        Set<String> parents = new HashSet<>();
 
-        boolean found = false;
-        while (!found) {
-            // If the currentCommitID is not null, check if it is in the set already
-            if (currentCommitID != null) {
-                // if it's not in the set, add it to the set and get the next id
-                if (!parents.contains(currentCommitID)) {
-                    parents.add(currentCommitID);
-                    Commit nextCommit = loadCommitFromFile(currentCommitID);
-                    currentCommitID = nextCommit.getParentID();
-                } else {
-                    splitID = currentCommitID;
-                    found = true;
-                }
+        LinkedList<String> fringe = new LinkedList<>();
+        fringe.addLast(branch.getCommitID());
+
+        while (!fringe.isEmpty()) {
+            String currentID = fringe.removeFirst();
+
+            // If we reached the origin, terminate
+            if (currentID == null) {
+                break;
             }
-            // Repeat above but with the branchID
-            if (branchCommitID != null) {
-                if (!parents.contains(branchCommitID)) {
-                    parents.add(branchCommitID);
-                    Commit nextCommit = loadCommitFromFile(branchCommitID);
-                    branchCommitID = nextCommit.getParentID();
-                } else {
-                    splitID = branchCommitID;
-                    found = true;
-                }
+
+            // Check if the ID is in the parents
+            if(parents.contains(currentID)) {
+                splitID = currentID;
+                break;
+            }
+
+            // Load the commit
+            Commit currentCommit = loadCommitFromFile(currentID);
+
+            // Enqueue the first parent
+             fringe.addLast(currentCommit.getParentID());
+
+             // If there is a second parent, enqueue it as well
+            if (currentCommit.hasSecondParent()) {
+                fringe.addLast(currentCommit.getSecondParentID());
             }
         }
 
         return splitID;
     }
-
 }

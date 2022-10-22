@@ -2,6 +2,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.TreeMap;
 
 
@@ -62,6 +63,16 @@ public class Commit implements Serializable, Dumpable {
         return parentID;
     }
 
+    /** Returns true if the commit has a second parent */
+    public boolean hasSecondParent() {
+        return secondParentID != null;
+    }
+
+    /** Returns the ID of the second parent commit */
+    public String getSecondParentID() {
+        return secondParentID;
+    }
+
     /** Returns the message of the commit */
     public String getMessage() {
         return message;
@@ -85,6 +96,34 @@ public class Commit implements Serializable, Dumpable {
     /** Returns the blobID for the associated fileName or Null if it does not exist */
     public String getBlobID(String fileName) {
         return commitFiles.get(fileName);
+    }
+
+    /** Returns the commit IDs of all commits along the path to the origin commit
+     * starting from this commit and accounting for merge commits */
+    public HashSet<String> getAllParents() {
+        // Base case: Origin commit returns an empty set
+        if (parentID == null) {
+            return new HashSet<>();
+        }
+
+        // Add the current commit and the first parent
+        HashSet<String> allParents = new HashSet<>();
+        allParents.add(getCommitID());
+        allParents.add(parentID);
+
+        // Add the parents of the first parent
+        Commit firstParent = Repository.loadCommitFromFile(parentID);
+        HashSet<String> allFirstsParents = firstParent.getAllParents();
+        allParents.addAll(allFirstsParents);
+
+        // Add the parents of the second parent if there is one
+        if (secondParentID != null) {
+            Commit secondParent = Repository.loadCommitFromFile(secondParentID);
+            HashSet<String> allSecondsParents = secondParent.getAllParents();
+            allParents.addAll(allSecondsParents);
+        }
+
+        return allParents;
     }
 
     @Override
