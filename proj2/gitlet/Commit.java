@@ -13,7 +13,8 @@ import java.util.TreeMap;
 public class Commit implements Serializable, Dumpable {
     /**
      * message -- The message of this Commit
-     * parent -- The previous commit
+     * parentID -- The previous commit ID
+     * secondParentID -- in the case of a merge commit, the commit ID of the merged branch
      * time -- The date and time of the commit
      * commitFiles -- The names of the files being tracked : File name -> blobID
      * List all instance variables of the Commit class here with a useful
@@ -21,15 +22,25 @@ public class Commit implements Serializable, Dumpable {
      * variable is used. We've provided one example for `message`.
      */
 
-    private String message;
-    private String parentID;
-    private String time;
-    private TreeMap<String, String> commitFiles;
+    private final String message;
+    private final String parentID;
+    private final String secondParentID;
+    private final String time;
+    private final TreeMap<String, String> commitFiles;
 
 
     public Commit(String message, String parent, String time, TreeMap<String, String> commitFiles) {
         this.message = message;
         this.parentID = parent;
+        this.secondParentID = null;
+        this.time = time;
+        this.commitFiles = commitFiles;
+    }
+
+    public Commit(String message, String parent, String merge, String time, TreeMap<String, String> commitFiles) {
+        this.message = message;
+        this.parentID = parent;
+        this.secondParentID = merge;
         this.time = time;
         this.commitFiles = commitFiles;
     }
@@ -78,8 +89,14 @@ public class Commit implements Serializable, Dumpable {
 
     @Override
     public String toString() {
-        return "===\ncommit " + getCommitID() + "\nDate: "
-                + time.toString() + "\n" + message + "\n";
+        if (secondParentID == null) {
+            return "===\ncommit " + getCommitID() + "\nDate: "
+                    + time.toString() + "\n" + message + "\n";
+        } else {
+            return "===\ncommit " + getCommitID() + "\nMerge: " + parentID.substring(0, 7)
+                    + " " + secondParentID.substring(0, 7) + "\nDate: "
+                    + time.toString() + "\n" + message + "\n";
+        }
     }
 
     @Override
