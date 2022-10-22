@@ -76,11 +76,6 @@ public class Commit implements Serializable, Dumpable {
         return commitFiles.get(fileName);
     }
 
-    /** Returns true if the commit is the origin commit */
-    public boolean isOrigin() {
-        return getCommitID() == Repository.originCommitID;
-    }
-
     @Override
     public String toString() {
         return "===\ncommit " + getCommitID() + "\nDate: "

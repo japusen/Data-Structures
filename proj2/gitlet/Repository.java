@@ -474,18 +474,19 @@ public class Repository {
         }
 
         // Find the splitCommit and load it
-        Commit splitCommit = findBranchSplitPoint(headCommit, mergeCommit);
+        String splitCommitID = findBranchSplitPoint(headCommit, mergeCommit);
+        Commit splitCommit = loadCommitFromFile(splitCommitID);
 
         //  If the split point is the same commit as the given branch,
         //  then we do nothing
-        if (splitCommit.equals(mergeCommit)) {
+        if (splitCommitID.equals(mergeCommitID)) {
             System.out.println("Given branch is an ancestor of the current branch.");
             System.exit(0);
         }
 
         // If the split point is the current branch,
         // then the effect is to check out the given branch
-        if (splitCommit.equals(headCommit)) {
+        if (splitCommitID.equals(headCommitID)) {
             checkout(branch);
             System.out.println("Current branch fast-forwarded.");
             System.exit(0);
@@ -645,38 +646,41 @@ public class Repository {
         Utils.writeContents(copy, contents);
     }
 
-    /** Returns the commit that is the split point between two branches */
-    public static Commit findBranchSplitPoint(Commit current, Commit branch) {
-        Commit currentPtr = current;
-        Commit branchPtr = branch;
+    /** Returns the commit ID that is the split point between two branches */
+    public static String findBranchSplitPoint(Commit current, Commit branch) {
+        String currentCommitID = current.getCommitID();
+        String branchCommitID = branch.getCommitID();
         String splitID = "";
         Set<String> parents = new HashSet<>();
 
         boolean found = false;
         while (!found) {
-            if (currentPtr != null) {
-                String id = currentPtr.getParentID();
-                if (!parents.contains(id)) {
-                    parents.add(id);
-                    currentPtr = loadCommitFromFile(currentPtr.getParentID());
+            // If the currentCommitID is not null, check if it is in the set already
+            if (currentCommitID != null) {
+                // if it's not in the set, add it to the set and get the next id
+                if (!parents.contains(currentCommitID)) {
+                    parents.add(currentCommitID);
+                    Commit nextCommit = loadCommitFromFile(currentCommitID);
+                    currentCommitID = nextCommit.getParentID();
                 } else {
-                    splitID = id;
+                    splitID = currentCommitID;
                     found = true;
                 }
             }
-            if (branchPtr != null) {
-                String id = branchPtr.getParentID();
-                if (!parents.contains(id)) {
-                    parents.add(id);
-                    branchPtr = loadCommitFromFile(branchPtr.getParentID());
+            // Repeat above but with the branchID
+            if (branchCommitID != null) {
+                if (!parents.contains(branchCommitID)) {
+                    parents.add(branchCommitID);
+                    Commit nextCommit = loadCommitFromFile(branchCommitID);
+                    branchCommitID = nextCommit.getParentID();
                 } else {
-                    splitID = id;
+                    splitID = branchCommitID;
                     found = true;
                 }
             }
         }
 
-        return loadCommitFromFile(splitID);
+        return splitID;
     }
 
 }
