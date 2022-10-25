@@ -31,7 +31,8 @@ public class Commit implements Serializable, Dumpable {
     private final TreeMap<String, String> commitFiles;
 
 
-    public Commit(String message, String parent, String mergeParent, String time, TreeMap<String, String> commitFiles) {
+    public Commit(String message, String parent, String mergeParent,
+                  String time, TreeMap<String, String> commitFiles) {
         this.message = message;
         this.parentID = parent;
         this.secondParentID = mergeParent;
