@@ -31,7 +31,8 @@ public class Repository {
     public static final File GITLET_DIR = Utils.join(CWD, ".gitlet");
     static final File COMMIT_DIR = Utils.join(Repository.GITLET_DIR, "commits");
     static final File BLOB_DIR = Utils.join(Repository.GITLET_DIR, "blobs");
-    static final DateFormat DATE_FORMAT = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z");
+    static final DateFormat DATE_FORMAT =
+            new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy Z");
 
 
     /**
@@ -110,7 +111,7 @@ public class Repository {
     }
 
     /** Creates a new commit and clears the staging area */
-    public static void commit(String message, String secondParent) {
+    public static void commit(String message, String secondParentID) {
         // Message cannot be blank
         if (message.isEmpty()) {
             System.out.println("Please enter a commit message.");
@@ -147,7 +148,7 @@ public class Repository {
         }
 
         // Create the New Commit
-        Commit newCommit = new Commit(message, prevCommitID, secondParent,
+        Commit newCommit = new Commit(message, prevCommitID, secondParentID,
                 DATE_FORMAT.format(new Date()), commitFiles);
         String newCommitID = newCommit.getCommitID();
 
@@ -435,126 +436,34 @@ public class Repository {
 
     /** Merges a branch onto the current branch */
     public static void merge(String branch) {
-        // Load Branches and Staging Area
+        // Load Branches
         Branch branches = loadBranchesFromFile();
-        Staging stagingArea = loadStagingAreaFromFile();
 
         // Load the headCommitID and the mergeCommitID
         String headCommitID = branches.getHEADCommitID();
         String mergeCommitID = branches.getBranchCommitID(branch);
 
-        // Verify branch exists
-        if (!branches.containsBranch(branch)) {
-            System.out.println("A branch with that name does not exist.");
-            System.exit(0);
-        }
-
-        // Cannot merge with itself
-        if (branches.getHEAD().equals(branch)) {
-            System.out.println("Cannot merge a branch with itself.");
-            System.exit(0);
-        }
-
-        // Staging Area is not empty
-        if (!stagingArea.isEmpty()) {
-            System.out.println("You have uncommitted changes.");
-            System.exit(0);
-        }
+        // Verify that the call to merge is valid
+        verifyMerge(branch);
 
         // Load the commits from the two branches
         Commit headCommit = loadCommitFromFile(headCommitID);
         Commit mergeCommit = loadCommitFromFile(mergeCommitID);
 
-        // There is an untracked file in the cwd
-        if (hasUntrackedFile(headCommit, mergeCommit)) {
-            System.out.println("There is an untracked file in the way;"
-                    + " delete it, or add and commit it first.");
-            System.exit(0);
-        }
+        // Check for untracked files in the cwd
+        checkForUntrackedFiles(headCommit, mergeCommit);
 
         // Find the splitCommit
         String splitCommitID = findBranchSplitPoint(headCommit, mergeCommit);
 
-        //  If the split point is the same commit as the given branch,
-        //  then we do nothing
-        if (splitCommitID.equals(mergeCommitID)) {
-            System.out.println("Given branch is an ancestor of the current branch.");
-            System.exit(0);
-        }
-
-        // If the split point is the current branch,
-        // then the effect is to check out the given branch
-        if (splitCommitID.equals(headCommitID)) {
-            checkout(branch);
-            System.out.println("Current branch fast-forwarded.");
-            System.exit(0);
-        }
+        verifySplitPoint(branch, splitCommitID,
+                headCommitID, mergeCommitID);
 
         // Load the split commit
         Commit splitCommit = loadCommitFromFile(splitCommitID);
 
-        // Compile all the files from the three commits into a set
-        Set<String> allFiles = new HashSet<>();
-        allFiles.addAll(headCommit.getFileNames());
-        allFiles.addAll(mergeCommit.getFileNames());
-        allFiles.addAll(splitCommit.getFileNames());
-
-        // Determine if the merge has a conflict
-        boolean hasConflict = false;
-
         // Merge Files
-        for (String fileName : allFiles) {
-            if (splitCommit.isTracking(fileName)) {
-                String splitBlobID = splitCommit.getFileBlobID(fileName);
-                String headBlobID = headCommit.getFileBlobID(fileName);
-                String mergeBlobID = mergeCommit.getFileBlobID(fileName);
-
-                // Hasn't changed in head
-                if (splitBlobID.equals(headBlobID)) {
-                    // Not in merge
-                    if (!mergeCommit.isTracking(fileName)) {
-                        remove(fileName);
-                    // Changed in merge
-                    } else if (!splitBlobID.equals(mergeBlobID)) {
-                        writeFileToCWD(mergeCommit, fileName);
-                        stagingArea.addFile(fileName, mergeBlobID);
-                    }
-                }
-
-                // Changed in head and merge, but not the same changes
-                if (!sameBlobID(splitBlobID, headBlobID)
-                        && !sameBlobID(splitBlobID, mergeBlobID)
-                        && !sameBlobID(headBlobID, mergeBlobID)) {
-                    writeConflictFile(fileName, headBlobID, mergeBlobID);
-                    Repository.add(fileName);
-                    hasConflict = true;
-                }
-
-            } else {
-                String headBlobID = headCommit.getFileBlobID(fileName);
-                String mergeBlobID = mergeCommit.getFileBlobID(fileName);
-
-                // Not tracked in headCommit, but tracked in mergeCommit
-                if (!headCommit.isTracking(fileName) && mergeCommit.isTracking(fileName)) {
-                    writeFileToCWD(mergeCommit, fileName);
-                    stagingArea.addFile(fileName, mergeBlobID);
-                // Changed in head and merge, but not the same changes
-                } else if (!sameBlobID(headBlobID, mergeBlobID)) {
-                    writeConflictFile(fileName, headBlobID, mergeBlobID);
-                    Repository.add(fileName);
-                    hasConflict = true;
-                }
-            }
-        }
-
-        // Save changes
-        branches.saveToFile();
-        stagingArea.saveToFile();
-
-        // There was a conflict
-        if (hasConflict) {
-            System.out.println("Encountered a merge conflict.");
-        }
+        mergeFiles(headCommit, mergeCommit, splitCommit);
 
         // Make the commit
         String message = "Merged " + branch + " into " + branches.getHEAD() + ".";
@@ -574,11 +483,7 @@ public class Repository {
         Set<String> checkoutCommitFiles = checkoutCommit.getCommitFiles().keySet();
 
         // There is an untracked file in the cwd
-        if (hasUntrackedFile(prevCommit, checkoutCommit)) {
-            System.out.println("There is an untracked file in the way;"
-                    + " delete it, or add and commit it first.");
-            System.exit(0);
-        }
+        checkForUntrackedFiles(prevCommit, checkoutCommit);
 
         // Overwrite files of the new branch to the CWD
         for (String file: checkoutCommitFiles) {
@@ -675,14 +580,15 @@ public class Repository {
     }
 
     /** Returns true if there is an untracked file in the way of a reset/checkout/merge */
-    public static boolean hasUntrackedFile(Commit first, Commit second) {
+    public static void checkForUntrackedFiles(Commit first, Commit second) {
         Set<String> cwdFiles = getCwdFiles().keySet();
         for (String file : cwdFiles) {
             if (!first.isTracking(file) && second.isTracking(file)) {
-                return true;
+                System.out.println("There is an untracked file in the way;"
+                        + " delete it, or add and commit it first.");
+                System.exit(0);
             }
         }
-        return false;
     }
 
     /** Writes a file from a Commit to the CWD */
@@ -714,7 +620,7 @@ public class Repository {
             }
 
             // Check if the ID is in the parents
-            if(parents.contains(currentID)) {
+            if (parents.contains(currentID)) {
                 splitID = currentID;
                 break;
             }
@@ -723,7 +629,7 @@ public class Repository {
             Commit currentCommit = loadCommitFromFile(currentID);
 
             // Enqueue the first parent
-             fringe.addLast(currentCommit.getParentID());
+            fringe.addLast(currentCommit.getParentID());
 
              // If there is a second parent, enqueue it as well
             if (currentCommit.hasSecondParent()) {
@@ -736,7 +642,7 @@ public class Repository {
 
     /** Overwrite merge conflict file */
     public static void writeConflictFile(String fileName, String headBlobID, String mergeBlobID) {
-        File conflictFile = Utils.join(BLOB_DIR, fileName);
+        File conflictFile = Utils.join(CWD, fileName);
 
         String headContents = getBlobFileContents(headBlobID);
         String mergeContents = getBlobFileContents(mergeBlobID);
@@ -746,13 +652,126 @@ public class Repository {
     }
 
     /** Gets the file contents as a string for the provided blobID */
-    public static String getBlobFileContents(String fileName) {
+    public static String getBlobFileContents(String blobID) {
         // File does not exist
-        File file = Utils.join(BLOB_DIR, fileName);
-        if (!file.exists()) {
-            return fileName;
+        File file = Utils.join(BLOB_DIR, blobID);
+        if (blobID.equals("") || !file.exists()) {
+            return "";
         }
         return Utils.readContentsAsString(file);
+    }
+
+    /** Verify if a call to merge is valid */
+    public static void verifyMerge(String branch) {
+        // Load Branches and Staging Area
+        Branch branches = loadBranchesFromFile();
+        Staging stagingArea = loadStagingAreaFromFile();
+
+        // Verify branch exists
+        if (!branches.containsBranch(branch)) {
+            System.out.println("A branch with that name does not exist.");
+            System.exit(0);
+        }
+
+        // Cannot merge with itself
+        if (branches.getHEAD().equals(branch)) {
+            System.out.println("Cannot merge a branch with itself.");
+            System.exit(0);
+        }
+
+        // Staging Area is not empty
+        if (!stagingArea.isEmpty()) {
+            System.out.println("You have uncommitted changes.");
+            System.exit(0);
+        }
+    }
+
+    /** Verify the split point is valid */
+    public static void verifySplitPoint(String branch, String splitID,
+                                        String headID, String mergeID) {
+        //  If the split point is the same commit as the given branch,
+        //  then we do nothing
+        if (splitID.equals(mergeID)) {
+            System.out.println("Given branch is an ancestor of the current branch.");
+            System.exit(0);
+        }
+
+        // If the split point is the current branch,
+        // then the effect is to check out the given branch
+        if (splitID.equals(headID)) {
+            checkout(branch);
+            System.out.println("Current branch fast-forwarded.");
+            System.exit(0);
+        }
+    }
+
+    /** Merge files of the split commmit, head commit, and merge commit */
+    public static void mergeFiles(Commit headCommit, Commit mergeCommit, Commit splitCommit) {
+        // Load Branches and Staging Area
+        Branch branches = loadBranchesFromFile();
+        Staging stagingArea = loadStagingAreaFromFile();
+
+        // Compile all the files from the three commits into a set
+        Set<String> allFiles = new HashSet<>();
+        allFiles.addAll(headCommit.getFileNames());
+        allFiles.addAll(mergeCommit.getFileNames());
+        allFiles.addAll(splitCommit.getFileNames());
+
+        // Determine if the merge has a conflict
+        boolean hasConflict = false;
+
+        for (String fileName : allFiles) {
+            if (splitCommit.isTracking(fileName)) {
+                String splitBlobID = splitCommit.getFileBlobID(fileName);
+                String headBlobID = headCommit.getFileBlobID(fileName);
+                String mergeBlobID = mergeCommit.getFileBlobID(fileName);
+
+                // Hasn't changed in head
+                if (splitBlobID.equals(headBlobID)) {
+                    if (!mergeCommit.isTracking(fileName)) {
+                        // Not in merge
+                        remove(fileName);
+                    } else if (!splitBlobID.equals(mergeBlobID)) {
+                        // Changed in merge
+                        writeFileToCWD(mergeCommit, fileName);
+                        Repository.add(fileName);
+                    }
+                }
+
+                // Changed in head and merge, but not the same changes
+                if (!sameBlobID(splitBlobID, headBlobID)
+                        && !sameBlobID(splitBlobID, mergeBlobID)
+                        && !sameBlobID(headBlobID, mergeBlobID)) {
+                    writeConflictFile(fileName, headBlobID, mergeBlobID);
+                    Repository.add(fileName);
+                    hasConflict = true;
+                }
+
+            } else {
+                String headBlobID = headCommit.getFileBlobID(fileName);
+                String mergeBlobID = mergeCommit.getFileBlobID(fileName);
+
+                if (!headCommit.isTracking(fileName) && mergeCommit.isTracking(fileName)) {
+                    // Not tracked in headCommit, but tracked in mergeCommit
+                    writeFileToCWD(mergeCommit, fileName);
+                    Repository.add(fileName);
+                } else if (!sameBlobID(headBlobID, mergeBlobID)) {
+                    // Changed in head and merge, but not the same changes
+                    writeConflictFile(fileName, headBlobID, mergeBlobID);
+                    Repository.add(fileName);
+                    hasConflict = true;
+                }
+            }
+        }
+
+        // Notify there was a conflict
+        if (hasConflict) {
+            System.out.println("Encountered a merge conflict.");
+        }
+
+        // Save changes
+        branches.saveToFile();
+        stagingArea.saveToFile();
     }
 
 }
