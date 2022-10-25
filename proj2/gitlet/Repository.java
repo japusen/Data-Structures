@@ -647,7 +647,8 @@ public class Repository {
         String headContents = getBlobFileContents(headBlobID);
         String mergeContents = getBlobFileContents(mergeBlobID);
 
-        String contents = "<<<<<<< HEAD\n" + headContents + "\n=======" + mergeContents + "\n>>>>>>>";
+        String contents = "<<<<<<< HEAD\n" + headContents
+                + "=======\n" + mergeContents + ">>>>>>>";
         Utils.writeContents(conflictFile, contents);
     }
 
