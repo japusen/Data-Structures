@@ -743,7 +743,6 @@ public class Repository {
                     writeConflictFile(fileName, headBlobID, mergeBlobID);
                     Repository.add(fileName);
                     hasConflict = true;
-                    System.out.println("DEBUG: --1--");
                 }
 
             } else {
@@ -758,7 +757,6 @@ public class Repository {
                     writeConflictFile(fileName, headBlobID, mergeBlobID);
                     Repository.add(fileName);
                     hasConflict = true;
-                    System.out.println("DEBUG: --2--");
                 }
             }
         }
