@@ -646,9 +646,19 @@ public class Repository {
 
         String headContents = getBlobFileContents(headBlobID);
         String mergeContents = getBlobFileContents(mergeBlobID);
+        String contents = "";
 
-        String contents = "<<<<<<< HEAD\n" + headContents
-                + "=======\n" + mergeContents + ">>>>>>>";
+        if (headContents.equals("")) {
+            contents = "<<<<<<< HEAD\n" + headContents
+                    + "=======\n" + mergeContents + "\n>>>>>>>";
+        } else if (mergeContents.equals("")) {
+            contents = "<<<<<<< HEAD\n" + headContents
+                    + "\n=======" + mergeContents + "\n>>>>>>>";
+        } else {
+            contents = "<<<<<<< HEAD\n" + headContents
+                    + "\n=======\n" + mergeContents + "\n>>>>>>>";
+        }
+
         Utils.writeContents(conflictFile, contents);
     }
 
