@@ -3,6 +3,7 @@ package gitlet;
 import java.io.File;
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Set;
 import java.util.TreeMap;
 
 
@@ -30,18 +31,10 @@ public class Commit implements Serializable, Dumpable {
     private final TreeMap<String, String> commitFiles;
 
 
-    public Commit(String message, String parent, String time, TreeMap<String, String> commitFiles) {
+    public Commit(String message, String parent, String mergeParent, String time, TreeMap<String, String> commitFiles) {
         this.message = message;
         this.parentID = parent;
-        this.secondParentID = null;
-        this.time = time;
-        this.commitFiles = commitFiles;
-    }
-
-    public Commit(String message, String parent, String merge, String time, TreeMap<String, String> commitFiles) {
-        this.message = message;
-        this.parentID = parent;
-        this.secondParentID = merge;
+        this.secondParentID = mergeParent;
         this.time = time;
         this.commitFiles = commitFiles;
     }
@@ -83,19 +76,14 @@ public class Commit implements Serializable, Dumpable {
         return commitFiles;
     }
 
-    /** Returns the blobID for the file */
+    /** Returns the blobID for the file or the empty string if it does not exist*/
     public String getFileBlobID(String fileName) {
-        return commitFiles.get(fileName);
+        return commitFiles.getOrDefault(fileName, "");
     }
 
     /** Returns true if the Commit is tracking the file fileName */
     public boolean isTracking(String fileName) {
         return commitFiles.containsKey(fileName);
-    }
-
-    /** Returns the blobID for the associated fileName or Null if it does not exist */
-    public String getBlobID(String fileName) {
-        return commitFiles.get(fileName);
     }
 
     /** Returns the commit IDs of all commits along the path to the origin commit
@@ -124,6 +112,11 @@ public class Commit implements Serializable, Dumpable {
         }
 
         return allParents;
+    }
+
+    /** Returns a set of all the file names in the commit */
+    public Set<String> getFileNames() {
+        return commitFiles.keySet();
     }
 
     @Override

@@ -33,7 +33,7 @@ public class Main {
             case "commit":
                 validateCWD();
                 validateNumArgs(args, 2);
-                Repository.commit(args[1]);
+                Repository.commit(args[1], null);
                 break;
             case "rm":
                 validateCWD();

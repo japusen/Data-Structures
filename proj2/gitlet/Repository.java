@@ -48,7 +48,7 @@ public class Repository {
             STAGING_FILE.createNewFile();
 
             // Create the origin Commit obj and save it to COMMIT_DIR
-            Commit originCommit = new Commit("initial commit", null,
+            Commit originCommit = new Commit("initial commit", null, null,
                     DATE_FORMAT.format(new Date(0)), new TreeMap<>());
             String originCommitID = originCommit.getCommitID();
             originCommit.saveToDir();
@@ -90,7 +90,7 @@ public class Repository {
         //      If they are different, overwrite the addition
         // Otherwise, the file wasn't already in the commit, so add to staging area.
         if (headCommit.isTracking(fileName)) {
-            String headBlobID = headCommit.getBlobID(fileName);
+            String headBlobID = headCommit.getFileBlobID(fileName);
 
             if (sameBlobID(addedFileBlobID, headBlobID)) {
                 stagingArea.cancelAdd(fileName);
@@ -110,7 +110,7 @@ public class Repository {
     }
 
     /** Creates a new commit and clears the staging area */
-    public static void commit(String message) {
+    public static void commit(String message, String secondParent) {
         // Message cannot be blank
         if (message.isEmpty()) {
             System.out.println("Please enter a commit message.");
@@ -147,7 +147,7 @@ public class Repository {
         }
 
         // Create the New Commit
-        Commit newCommit = new Commit(message, prevCommitID,
+        Commit newCommit = new Commit(message, prevCommitID, secondParent,
                 DATE_FORMAT.format(new Date()), commitFiles);
         String newCommitID = newCommit.getCommitID();
 
@@ -472,9 +472,8 @@ public class Repository {
             System.exit(0);
         }
 
-        // Find the splitCommit and load it
+        // Find the splitCommit
         String splitCommitID = findBranchSplitPoint(headCommit, mergeCommit);
-        Commit splitCommit = loadCommitFromFile(splitCommitID);
 
         //  If the split point is the same commit as the given branch,
         //  then we do nothing
@@ -491,23 +490,76 @@ public class Repository {
             System.exit(0);
         }
 
-        // Merge Files
-        // TODO
+        // Load the split commit
+        Commit splitCommit = loadCommitFromFile(splitCommitID);
+
+        // Compile all the files from the three commits into a set
+        Set<String> allFiles = new HashSet<>();
+        allFiles.addAll(headCommit.getFileNames());
+        allFiles.addAll(mergeCommit.getFileNames());
+        allFiles.addAll(splitCommit.getFileNames());
+
+        // Determine if the merge has a conflict
         boolean hasConflict = false;
 
-        // Create commit
-        // TODO
-        String message = "Merged " + branch + " into " + branches.getHEAD() + ".";
+        // Merge Files
+        for (String fileName : allFiles) {
+            if (splitCommit.isTracking(fileName)) {
+                String splitBlobID = splitCommit.getFileBlobID(fileName);
+                String headBlobID = headCommit.getFileBlobID(fileName);
+                String mergeBlobID = mergeCommit.getFileBlobID(fileName);
 
+                // Hasn't changed in head
+                if (splitBlobID.equals(headBlobID)) {
+                    // Not in merge
+                    if (!mergeCommit.isTracking(fileName)) {
+                        remove(fileName);
+                    // Changed in merge
+                    } else if (!splitBlobID.equals(mergeBlobID)) {
+                        writeFileToCWD(mergeCommit, fileName);
+                        stagingArea.addFile(fileName, mergeBlobID);
+                    }
+                }
+
+                // Changed in head and merge, but not the same changes
+                if (!sameBlobID(splitBlobID, headBlobID)
+                        && !sameBlobID(splitBlobID, mergeBlobID)
+                        && !sameBlobID(headBlobID, mergeBlobID)) {
+                    writeConflictFile(fileName, headBlobID, mergeBlobID);
+                    Repository.add(fileName);
+                    hasConflict = true;
+                }
+
+            } else {
+                String headBlobID = headCommit.getFileBlobID(fileName);
+                String mergeBlobID = mergeCommit.getFileBlobID(fileName);
+
+                // Not tracked in headCommit, but tracked in mergeCommit
+                if (!headCommit.isTracking(fileName) && mergeCommit.isTracking(fileName)) {
+                    writeFileToCWD(mergeCommit, fileName);
+                    stagingArea.addFile(fileName, mergeBlobID);
+                // Changed in head and merge, but not the same changes
+                } else if (!sameBlobID(headBlobID, mergeBlobID)) {
+                    writeConflictFile(fileName, headBlobID, mergeBlobID);
+                    Repository.add(fileName);
+                    hasConflict = true;
+                }
+            }
+        }
+
+        // Save changes
+        branches.saveToFile();
+        stagingArea.saveToFile();
 
         // There was a conflict
         if (hasConflict) {
             System.out.println("Encountered a merge conflict.");
         }
 
-        // Save changes
-        branches.saveToFile();
-        stagingArea.saveToFile();
+        // Make the commit
+        String message = "Merged " + branch + " into " + branches.getHEAD() + ".";
+        Repository.commit(message, mergeCommit.getCommitID());
+
     }
 
     /** Overwrites the CWD files to match the new commit */
@@ -681,4 +733,26 @@ public class Repository {
 
         return splitID;
     }
+
+    /** Overwrite merge conflict file */
+    public static void writeConflictFile(String fileName, String headBlobID, String mergeBlobID) {
+        File conflictFile = Utils.join(BLOB_DIR, fileName);
+
+        String headContents = getBlobFileContents(headBlobID);
+        String mergeContents = getBlobFileContents(mergeBlobID);
+
+        String contents = "<<<<<<< HEAD\n" + headContents + "=======" + mergeContents + ">>>>>>>";
+        Utils.writeContents(conflictFile, contents);
+    }
+
+    /** Gets the file contents as a string for the provided blobID */
+    public static String getBlobFileContents(String fileName) {
+        // File does not exist
+        File file = Utils.join(BLOB_DIR, fileName);
+        if (!file.exists()) {
+            return fileName;
+        }
+        return Utils.readContentsAsString(file);
+    }
+
 }
