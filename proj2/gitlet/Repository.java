@@ -707,10 +707,6 @@ public class Repository {
 
     /** Merge files of the split commmit, head commit, and merge commit */
     public static void mergeFiles(Commit headCommit, Commit mergeCommit, Commit splitCommit) {
-        // Load Branches and Staging Area
-        Branch branches = loadBranchesFromFile();
-        Staging stagingArea = loadStagingAreaFromFile();
-
         // Compile all the files from the three commits into a set
         Set<String> allFiles = new HashSet<>();
         allFiles.addAll(headCommit.getFileNames());
@@ -721,10 +717,12 @@ public class Repository {
         boolean hasConflict = false;
 
         for (String fileName : allFiles) {
+            String headBlobID = headCommit.getFileBlobID(fileName);
+            String mergeBlobID = mergeCommit.getFileBlobID(fileName);
+
             if (splitCommit.isTracking(fileName)) {
                 String splitBlobID = splitCommit.getFileBlobID(fileName);
-                String headBlobID = headCommit.getFileBlobID(fileName);
-                String mergeBlobID = mergeCommit.getFileBlobID(fileName);
+
 
                 // Hasn't changed in head
                 if (splitBlobID.equals(headBlobID)) {
@@ -733,7 +731,7 @@ public class Repository {
                         remove(fileName);
                     } else if (!splitBlobID.equals(mergeBlobID)) {
                         // Changed in merge
-                        writeFileToCWD(mergeCommit, fileName);
+                        checkout(mergeCommit.getCommitID(), fileName);
                         Repository.add(fileName);
                     }
                 }
@@ -745,21 +743,22 @@ public class Repository {
                     writeConflictFile(fileName, headBlobID, mergeBlobID);
                     Repository.add(fileName);
                     hasConflict = true;
+                    System.out.println("DEBUG: --1--");
                 }
 
             } else {
-                String headBlobID = headCommit.getFileBlobID(fileName);
-                String mergeBlobID = mergeCommit.getFileBlobID(fileName);
-
                 if (!headCommit.isTracking(fileName) && mergeCommit.isTracking(fileName)) {
                     // Not tracked in headCommit, but tracked in mergeCommit
-                    writeFileToCWD(mergeCommit, fileName);
+                    checkout(mergeCommit.getCommitID(), fileName);
                     Repository.add(fileName);
-                } else if (!sameBlobID(headBlobID, mergeBlobID)) {
+                } else if (!sameBlobID("", headBlobID)
+                        && !sameBlobID("", mergeBlobID)
+                        && !sameBlobID(headBlobID, mergeBlobID)) {
                     // Changed in head and merge, but not the same changes
                     writeConflictFile(fileName, headBlobID, mergeBlobID);
                     Repository.add(fileName);
                     hasConflict = true;
+                    System.out.println("DEBUG: --2--");
                 }
             }
         }
@@ -768,10 +767,6 @@ public class Repository {
         if (hasConflict) {
             System.out.println("Encountered a merge conflict.");
         }
-
-        // Save changes
-        branches.saveToFile();
-        stagingArea.saveToFile();
     }
 
 }
