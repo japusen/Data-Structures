@@ -24,15 +24,15 @@ public class HexWorld {
      * Draws a hexagon with side length s with the top left corner at coordinate x, y
      */
     public static void addHexagon(TETile[][] tiles, int s, int x, int y, TETile type) {
-        // draw top half
-        for (int i = 0; i < s; i++) {
-            fillRow(tiles, s + i*2, x - i, y - i, type);
-        }
-
         // starting width and x, y coordinates for bottom half
         int width = s + 2*(s-1);
         int bottomX = x - (s-1);
         int bottomY = y - s;
+
+        // draw top half
+        for (int i = 0; i < s; i++) {
+            fillRow(tiles, s + i*2, x - i, y - i, type);
+        }
 
         // draw bottom half
         for (int i = 0; i < s; i++) {
@@ -52,7 +52,6 @@ public class HexWorld {
 
     /**
      * Fills the given 2D array of tiles with empty tiles.
-     * @param tiles
      */
     public static void fillEmptyTiles(TETile[][] tiles) {
         int height = tiles[0].length;
@@ -94,14 +93,14 @@ public class HexWorld {
      */
     private static TETile randomTile() {
         int tileNum = RANDOM.nextInt(5);
-        switch (tileNum) {
-            case 0: return Tileset.GRASS;
-            case 1: return Tileset.MOUNTAIN;
-            case 2: return Tileset.SAND;
-            case 3: return Tileset.TREE;
-            case 4: return Tileset.FLOWER;
-            default: return Tileset.NOTHING;
-        }
+        return switch (tileNum) {
+            case 0 -> Tileset.GRASS;
+            case 1 -> Tileset.MOUNTAIN;
+            case 2 -> Tileset.SAND;
+            case 3 -> Tileset.TREE;
+            case 4 -> Tileset.FLOWER;
+            default -> Tileset.NOTHING;
+        };
     }
 
     public static void main(String[] args) {
